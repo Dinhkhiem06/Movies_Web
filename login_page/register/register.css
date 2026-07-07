@@ -1,0 +1,134 @@
+.btn-text {
+  width: auto;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.875rem;
+  color: var(--primary);
+}
+
+.btn-text:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.otp-phone {
+  text-align: center;
+  color: var(--text);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem;
+}
+
+.otp-phone strong {
+  color: var(--primary);
+}
+
+.otp-inputs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+}
+
+.otp-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  background-color: var(--card-soft);
+  border: 0.09375rem solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.otp-box:-webkit-autofill,
+.otp-box:-webkit-autofill:hover,
+.otp-box:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0 100rem var(--card-soft) inset;
+  box-shadow: 0 0 0 100rem var(--card-soft) inset;
+  caret-color: var(--text);
+}
+
+.otp-box:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 0.25rem rgba(31, 131, 237, 0.2);
+  transform: scale(1.05);
+}
+
+.otp-box.filled {
+  border-color: #4b5563;
+}
+
+.otp-box.error {
+  border-color: var(--danger);
+  animation: shake 0.32s ease;
+}
+
+.otp-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.375rem;
+  flex-wrap: wrap;
+}
+
+.otp-timer {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.otp-demo {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 1.125rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem dashed var(--border);
+}
+
+.otp-demo code {
+  background-color: var(--card-soft);
+  padding: 0.125rem 0.4375rem;
+  border-radius: 0.3125rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.otp-back {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  margin-bottom: 1.25rem;
+  width: fit-content;
+  transition: color var(--transition-fast);
+}
+
+.otp-back:hover {
+  color: var(--text);
+}
+
+@media (min-width: 30rem) {
+  .otp-inputs {
+    gap: 0.5rem;
+  }
+
+  .otp-box {
+    font-size: 1.375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-box.error {
+    animation-duration: 0.001ms;
+    transition-duration: 0.001ms;
+  }
+}
