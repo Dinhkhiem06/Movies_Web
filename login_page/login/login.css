@@ -1,0 +1,94 @@
+.form-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: -0.25rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.forgot-link {
+  display: inline;
+  margin-left: auto;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: color var(--transition-fast);
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.875rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  margin: 1.125rem 0 1rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  height: 0.0625rem;
+  background-color: var(--border);
+}
+
+.social-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.google,
+.facebook {
+  position: relative;
+  background-color: var(--card-soft);
+  color: var(--text);
+  border: 0.09375rem solid var(--border);
+  justify-content: center;
+}
+
+.google:hover,
+.facebook:hover {
+  background-color: #262626;
+  border-color: #4d4d4d;
+  transform: translateY(-0.0625rem);
+}
+
+.google img,
+.facebook img {
+  position: absolute;
+  left: 1rem;
+  object-fit: contain;
+}
+
+.google img {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.facebook img {
+  width: 1.625rem;
+  height: 1.625rem;
+}
