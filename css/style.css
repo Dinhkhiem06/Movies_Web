@@ -6,31 +6,64 @@
 body{
      font-family: "Cairo", sans-serif;
 }
+
+/* class dung chung */
 .clear{
-    content: " ";
+    content: "";
     display: block;
     clear: both;
 }
-/* class dung chung */
+.main-section {
+    height: 2000px;
+}
 img {
     max-width: 100%;
 }
 .main-color {
     color: #1f83ed
 }
-.btn-hover:hover {
-    
-}
+
 .font_size20 {
     font-size: 20px;
 }
 .text-white {
     color: #fff;
 }
+.main-backround-color{
+    background-color: #181616;
+}
 /* class dung chung */
+/* button */
+.btns-left-right {
+    position: absolute;
+    width: 100%;
+    z-index: 5;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+}
+.btn-left, .btn-right{
+    color: #fff;
+    font-size: 30px;
+    opacity: 0.6;
+}
+
+.btn-left:hover, .btn-right:hover{
+    color: #1f83ed;
+    cursor: pointer;
+    opacity: 1;
+    transform: scale(1.2);
+}
+/* button */
 .header_main {
     background-color: #000;
     height: 60px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    position: fixed;
+    z-index: 10;
 }
 .movie_icon{
     display: inline-block;
@@ -43,15 +76,23 @@ img {
     text-transform: uppercase;
     float: right;
 }
-.nav_menu:hover {
-    color: #1f83ed
-}
 .nav_menu{
     line-height: 60px;
     text-decoration: none;
     color: #fff;
     font-weight: 700;
+    /* do nav menu là có thẻ a là inline nên phải set thêm block de element thay đổi size */
+    display: inline-block; 
+    transform: translateY(-0px);
+    transition: 0.2s ease-in-out;
 }
+
+.nav_menu:hover {
+    color: #1f83ed;
+    transform: translateY(-4px);
+    transition: 0.2s ease-in-out;
+}
+
 .nav_menu_btn {
     text-decoration: none;
     font-weight: 700;
@@ -113,11 +154,22 @@ img {
 }
 
 /* hero-section */
+
+.hero-section {
+    width: 100%;
+    height: 700px; 
+    display: flex;
+    overflow: hidden;
+    margin-top: 60px;
+    overflow: hidden;
+    position: relative;
+}
 .hero-slide-item {
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 700px; /* CHÍNH XÁC: Khống chế chiều cao banner nhỏ lại vừa tầm ngực */
+    height: 700px; 
+    flex-shrink: 0;
 }
 
 /* Định dạng cấu hình cho ảnh tự co giãn chuẩn tỉ lệ */
@@ -134,7 +186,7 @@ img {
     right: 0;
     bottom: 0;
     left: 0;
-    background-color: rgba(0, 0, 0, 0.6); /* Lớp phủ đen mờ phủ toàn bộ chiều cao mới */
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1;
 }
 
@@ -167,7 +219,7 @@ img {
     align-items: center;
     gap: 5px;
     color: #fff;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 400;
     margin-bottom: 25px;
 }
@@ -183,3 +235,254 @@ img {
     max-width: 500px;
     width: 100%;
 }
+
+.item-action {
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.play-icon {
+    margin-right: 17px;
+}
+/* tạo hiệu ứng load trang cho từng elenment */
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-30px); 
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);   
+    }
+}
+
+.animate-slide-down {
+    animation-name: slideDownFade;
+    animation-duration: 0.8s;        /* Thời gian chuyển động kéo dài 0.8 giây */
+    animation-timing-function: ease; /* Kiểu chuyển động mượt mà */
+    animation-fill-mode: forwards;   /* Giữ nguyên trạng thái hiển thị sau khi chạy xong */
+    opacity: 0;                      /* Ẩn chữ đi trước khi hiệu ứng bắt đầu chạy */
+}
+/* tạo độ trễ delay cho từng element từ trên xuống dưới*/
+.delay-1 {
+    animation-delay: 0.2s; 
+}
+.delay-2 {
+    animation-delay: 0.4s; 
+}
+.delay-3 {
+    animation-delay: 0.6s; 
+}
+.delay-4 {
+    animation-delay: 0.8s; 
+}
+
+
+/* top-movies-slide */
+
+.top-movies-slide {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    
+}
+
+
+.top-movies-slide {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+
+.movies-item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    padding-top: 140%;
+}
+
+
+.movies-item img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+.movies-item:hover img {
+    transform: scale(1.08);
+}
+
+
+.movies-item-content {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.movies-item-title {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.top-movies-slide .movie-infos {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #fff;
+    font-size: 13px; 
+    font-weight: 400;
+    margin-bottom: 0; 
+}
+
+/* top-movies-slide */
+
+
+/* late-movies */
+.title-section__icon {
+    color: #1f83ed;
+    font-size: 25px;
+    margin-right: 19px;
+}
+
+.container {
+    padding: 80px 40px 0px;
+}
+
+.movies-slide {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 15px;
+    margin-top: 40px;
+}
+.title-section {
+    color: #fff;
+    font-size: 24px;
+    display: block;
+    margin-bottom: 30px;
+    grid-column: 1/-1;
+}
+
+
+.late-movies .movie-infos {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #fff;
+    font-size: 13px; 
+    font-weight: 400;
+    margin-bottom: 0; 
+}
+/* late-movies */
+
+
+
+/*premium-series */
+.premium-series {
+    position: relative;
+
+}
+
+.shopping-card:hover {
+    transform: scale(1.5);
+    color: aqua;
+    transition: 0.2s ease-in;
+}
+
+.btn-register{
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    padding-bottom: 40px;
+}
+
+
+/* best-movies */
+.best-movies .container{
+    padding: 60px 40px 0px;
+    display: flex;
+    justify-content: center;
+}
+.line {
+    background-color: #1f83ed;
+    width: 100%;
+    height: 2px;
+}
+/* best-movies */
+/* đổi tên class thành .best-movies-banner để không bị ăn js của .hero-slide-item */
+.best-movies-banner { 
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 700px; 
+    flex-shrink: 0;
+}
+
+
+/*flix-pricing */
+.flix-pricing {
+    padding-bottom: 80px;
+}
+.flix-pricing .title-flix-pricing {
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    font-size: 28px;
+    text-transform: uppercase;
+}
+
+.register-flix {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 30px;
+}
+
+.register-flix-item{
+    background-color: #221f1f;
+    padding: 30px;
+    transform: translateY(-0px);
+    transition: 0.2s ease-in-out;
+}
+
+.register-flix-item:hover {
+    transform: translateY(-10px);
+    transition: 0.2s ease-in-out;
+    
+}
+
+.pricing-box__header {
+    margin-top: 40px;
+    font-size: 21px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+}
+.pricing-price {
+    font-weight: 700;
+}
+
+.pricing-box-content {
+    margin-top: 50px;
+    font-size: 17.5px;
+}
+
+.pricing-feature {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.disable {
+    text-decoration: line-through;
+}
+
+
+
