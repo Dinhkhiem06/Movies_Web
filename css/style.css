@@ -13,14 +13,12 @@ body{
     display: block;
     clear: both;
 }
-.main-section {
-    height: 2000px;
-}
+
 img {
     max-width: 100%;
 }
 .main-color {
-    color: #1f83ed
+    color: #1f83ed;
 }
 
 .font_size20 {
@@ -65,9 +63,13 @@ img {
     position: fixed;
     z-index: 10;
 }
-.movie_icon{
+.movie_icon {
+    float: left;
+}
+.movies-icon-main{
     display: inline-block;
     font-size: 30px;
+    color: #1f83ed;
 }
 .container_header{
     overflow: hidden;
@@ -346,8 +348,9 @@ img {
 /* late-movies */
 .title-section__icon {
     color: #1f83ed;
-    font-size: 25px;
+    font-size: 38px;
     margin-right: 19px;
+    transform: translateY(7px);
 }
 
 .container {
@@ -380,12 +383,9 @@ img {
 }
 /* late-movies */
 
-
-
 /*premium-series */
 .premium-series {
     position: relative;
-
 }
 
 .shopping-card:hover {
@@ -400,7 +400,7 @@ img {
     margin-top: 40px;
     padding-bottom: 40px;
 }
-
+/*premium-series */
 
 /* best-movies */
 .best-movies .container{
@@ -414,6 +414,7 @@ img {
     height: 2px;
 }
 /* best-movies */
+
 /* đổi tên class thành .best-movies-banner để không bị ăn js của .hero-slide-item */
 .best-movies-banner { 
     position: relative;
@@ -446,7 +447,7 @@ img {
 .register-flix-item{
     background-color: #221f1f;
     padding: 30px;
-    transform: translateY(-0px);
+    transform: translateY(0px);
     transition: 0.2s ease-in-out;
 }
 
@@ -483,6 +484,86 @@ img {
 .disable {
     text-decoration: line-through;
 }
+/*flix-pricing */
 
+/* footer */
+.footer {
+    background-color: #221f1f;
+}
+.footer-container {
+    padding: 0px 40px 0px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    font-size: 14px;
+}
 
+.title-flix-footer {
+    font-size: 28px;
+}
+.footer-content {
+    font-size: 14px;
+    padding: 0px 14px ;
+}
 
+.title-flix-footer {
+    display: inline;
+}
+
+.thank-cinema {
+        margin-top: 20px;
+}
+
+.icon-social {
+    margin-top: 20px;
+
+}
+
+.sub-icon-social{
+    font-size: 30px;
+    color: #fff;
+}
+.sub-icon-social:hover {
+    color: #1f83ed;
+    transition: 0.2s ease-in-out;
+}
+
+.footer-description {
+   margin-top: 10px;
+   
+}
+.footer-sub__description {
+    margin-bottom: 10px;
+    transform: translateX(0px);
+    transition: 0.2s ease-in-out;
+}
+.footer-sub__description:hover {
+    transform: translateX(4px);
+    transition: 0.2s ease-in-out;
+    color: #1f83ed;
+    cursor: pointer;
+}
+.footer-title {
+    padding: 25px 0px 0px;
+}
+
+.ch-play {
+    margin-top: 5px;
+    transform: translateX(0px);
+    transition: 0.2s ease-in-out;
+}
+.ch-play:hover {
+    transform: translateX(6px);
+    transition: 0.2s ease-in-out;
+    cursor: pointer;
+}
+.app-store {
+    margin-top: 5px;
+    transform: translateX(0px);
+    transition: 0.2s ease-in-out;
+}
+.app-store:hover {
+    transform: translateX(6px);
+    transition: 0.2s ease-in-out;
+    cursor: pointer;
+}
+/* footer */
