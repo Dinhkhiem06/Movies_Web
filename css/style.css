@@ -74,6 +74,7 @@ img {
 .container_header{
     overflow: hidden;
 }
+
 .nav_header{
     text-transform: uppercase;
     float: right;
@@ -154,7 +155,46 @@ img {
     margin-left: 45px;
     margin-right: 45px;
 }
+/* Thanh tìm kiếm (Search Box) */
+.search-box {
+    position: relative;
+    width: 250px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+}
 
+.search-box input {
+    width: 100%;
+    height: 100%;
+    background-color: #181616; 
+    border: 1px solid #333;
+    border-radius: 20px; 
+    padding: 0 40px 0 15px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+/* Hiệu ứng đổi màu viền khi click vào ô search */
+.search-box input:focus {
+    border-color: #1f83ed; /* Màu xanh chủ đạo của Flix */
+}
+
+/* Icon kính lúp định vị phía bên phải */
+.search-box .search-icon {
+    position: absolute;
+    right: 15px;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.3 ease;
+}
+
+.search-box input:focus + .search-icon {
+    color: #1f83ed; /* Phát sáng icon khi focus vào input */
+}
 /* hero-section */
 
 .hero-section {
@@ -223,7 +263,6 @@ img {
     color: #fff;
     font-size: 16px;
     font-weight: 400;
-    margin-bottom: 25px;
 }
 
 .item-content-description {
@@ -321,7 +360,7 @@ img {
     position: absolute;
     bottom: 0;
     width: 100%;
-    padding: 5px;
+    padding: 2px;
     background-color: rgba(0, 0, 0, 0.6);
 }
 
@@ -567,3 +606,45 @@ img {
     cursor: pointer;
 }
 /* footer */
+
+/* Thanh tìm kiếm (Search Box) */
+.search-box {
+    position: relative;
+    width: 250px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.search-box input {
+    width: 100%;
+    height: 100%;
+    background-color: #181616; /* Đồng bộ với màu nền tối của web */
+    border: 1px solid #333;
+    border-radius: 20px; /* Bo tròn góc mềm mại */
+    padding: 0 40px 0 15px;
+    color: #fff;
+    font-family: "Cairo", sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+/* Hiệu ứng đổi màu viền khi click vào ô search */
+.search-box input:focus {
+    border-color: #1f83ed; /* Màu xanh chủ đạo của Flix */
+}
+
+/* Icon kính lúp định vị phía bên phải */
+.search-box .search-icon {
+    position: absolute;
+    right: 15px;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.3 ease;
+}
+
+.search-box input:focus + .search-icon {
+    color: #1f83ed; /* Phát sáng icon khi focus vào input */
+}

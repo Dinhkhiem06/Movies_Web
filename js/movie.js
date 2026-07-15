@@ -59,3 +59,15 @@ btnLeft.addEventListener('click', () => {
     }
     updateSlider(); // Cập nhật lại giao diện slider
 });
+
+// Đợi giao diện HTML tải xong
+document.addEventListener("DOMContentLoaded", function () {
+    const menuBtn = document.querySelector('.sub-nav__menu');
+    const navHeader = document.querySelector('.nav_header');
+
+    // lấy ra tất cả các danh sách có tên là navheader,toggle có vai trò như công tắc kiểm tra active có đc thêm
+    // vào navHeader hay ko nếu ko có thì thêm và ngc lại
+    menuBtn.addEventListener('click', function () {
+        navHeader.classList.toggle('active');
+    });
+});
