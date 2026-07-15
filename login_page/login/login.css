@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -20,6 +20,11 @@
   height: 1.0625rem;
   accent-color: var(--primary);
   cursor: pointer;
+}
+
+.checkbox-row.is-demo,
+.checkbox-row.is-demo input {
+  cursor: default;
 }
 
 .forgot-link {
@@ -33,8 +38,15 @@
 }
 
 .forgot-link:hover {
-  color: var(--primary-dark);
+  color: var(--primary-hover);
   text-decoration: underline;
+}
+
+.forgot-link:disabled {
+  color: var(--primary);
+  opacity: 1;
+  cursor: default;
+  text-decoration: none;
 }
 
 .divider {
@@ -43,7 +55,7 @@
   align-items: center;
   gap: 0.875rem;
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   margin: 1.125rem 0 1rem;
 }
 
@@ -65,15 +77,27 @@
   position: relative;
   background-color: var(--card-soft);
   color: var(--text);
-  border: 0.09375rem solid var(--border);
+  border: 0.09375rem solid var(--control-border);
   justify-content: center;
 }
 
 .google:hover,
 .facebook:hover {
   background-color: #262626;
-  border-color: #4d4d4d;
+  border-color: var(--primary);
   transform: translateY(-0.0625rem);
+}
+
+.google:disabled,
+.facebook:disabled,
+.google:disabled:hover,
+.facebook:disabled:hover {
+  background-color: var(--card-soft);
+  color: var(--text);
+  border-color: var(--control-border);
+  opacity: 1;
+  cursor: default;
+  transform: none;
 }
 
 .google img,
@@ -91,4 +115,34 @@
 .facebook img {
   width: 1.625rem;
   height: 1.625rem;
+}
+
+@media (max-width: 22.5rem) {
+  .google,
+  .facebook {
+    font-size: 0.875rem;
+  }
+
+  .google img,
+  .facebook img {
+    left: 0.75rem;
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+}
+
+@media (any-pointer: coarse) {
+  .checkbox-row,
+  .forgot-link {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .google:hover,
+  .facebook:hover {
+    transform: none;
+  }
 }

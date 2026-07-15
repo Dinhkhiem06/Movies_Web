@@ -3,24 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineWave · Đăng nhập</title>
-  <link rel="stylesheet" href="auth_common.css" />
-  <link rel="stylesheet" href="login.css" />
+  <title>Flix | Đăng nhập</title>
+  <link rel="stylesheet" href="/login_page/common.css" />
+  <link rel="stylesheet" href="/login_page/login/login.css" />
 </head>
 <body>
+  <main class="auth-page">
+    <article class="auth-layout">
+      <header class="auth-header">
+        <a class="auth-header__home" href="/index.html" aria-label="Về trang chủ Flix">
+          <img class="auth-header__logo" src="/login_page/assets/movie_logo.png" width="500" height="500" alt="Flix" />
+        </a>
+      </header>
 
-  <header class="auth-header">
-    <img class="auth-header__logo" src="assets/movie_logo.png" alt="CineWave" />
-  </header>
-
-  <main class="auth-main">
-    <div class="auth-card">
+      <section class="auth-main">
+        <div class="auth-card">
 
       <section id="view-login" class="auth-view is-active" data-view="login" aria-labelledby="login-heading">
         <h1 id="login-heading" class="auth-title">Đăng nhập</h1>
         <p class="auth-subtitle">Xem phim không giới hạn, mọi lúc mọi nơi.</p>
 
-        <p class="notice" id="login-notice" role="alert" hidden></p>
+        <p class="notice" id="login-notice" role="alert" aria-atomic="true" hidden></p>
 
         <form id="login-form" class="auth-form" novalidate>
           <fieldset class="form-fieldset">
@@ -36,11 +39,15 @@
                   class="text-input"
                   placeholder="Nhập số điện thoại"
                   inputmode="numeric"
+                  maxlength="10"
+                  pattern="[0-9]{10}"
                   autocomplete="tel"
+                  required
+                  aria-invalid="false"
                   aria-describedby="login-phone-error"
                 />
               </div>
-              <p class="field-error" id="login-phone-error"></p>
+              <p class="field-error" id="login-phone-error" aria-live="polite"></p>
             </div>
 
             <div class="form-group">
@@ -53,19 +60,21 @@
                   class="text-input text-input--password"
                   placeholder="Nhập mật khẩu"
                   autocomplete="current-password"
+                  required
+                  aria-invalid="false"
                   aria-describedby="login-password-error"
                 />
                 <button type="button" class="toggle-visibility" data-target="login-password" aria-label="Hiện mật khẩu">Hiện</button>
               </div>
-              <p class="field-error" id="login-password-error"></p>
+              <p class="field-error" id="login-password-error" aria-live="polite"></p>
             </div>
 
             <div class="form-options">
-              <label class="checkbox-row" for="remember-me">
-                <input type="checkbox" id="remember-me" name="remember-me" />
+              <label class="checkbox-row is-demo" for="remember-me" title="Tính năng minh họa">
+                <input type="checkbox" id="remember-me" name="remember-me" disabled />
                 <span>Nhớ mật khẩu</span>
               </label>
-              <a href="#" class="forgot-link">Quên mật khẩu?</a>
+              <button type="button" class="forgot-link" title="Tính năng minh họa" disabled>Quên mật khẩu?</button>
             </div>
           </fieldset>
 
@@ -75,25 +84,27 @@
         <p class="divider"><span>Hoặc</span></p>
 
         <div class="social-row">
-          <button class="btn google" type="button">
-            <img src="assets/gg_logo.svg" alt="" />
+          <button class="btn google" type="button" title="Tính năng minh họa" disabled>
+            <img src="/login_page/assets/gg_logo.svg" alt="" />
             Đăng nhập bằng Google
           </button>
-          <button class="btn facebook" type="button">
-            <img src="assets/fb_logo.svg" alt="" />
+          <button class="btn facebook" type="button" title="Tính năng minh họa" disabled>
+            <img src="/login_page/assets/fb_logo.svg" alt="" />
             Đăng nhập bằng Facebook
           </button>
         </div>
 
         <p class="auth-footer">
           Bạn chưa có tài khoản?
-          <a href="register.html" class="link">Đăng ký</a>
+          <a href="/login_page/register/register.html" class="link">Đăng ký</a>
         </p>
       </section>
 
-    </div>
+        </div>
+      </section>
+    </article>
   </main>
 
-  <script src="login.js"></script>
+  <script src="/login_page/login/login.js"></script>
 </body>
 </html>

@@ -1,18 +1,19 @@
 (() => {
   'use strict';
 
-  // ===== CẤU HÌNH DÙNG CHUNG CHO TRANG LOGIN =====
-  const STORAGE_KEY = 'cinewave_accounts'; // Khóa lưu danh sách tài khoản trong localStorage
+  // ===== SHARED LOGIN PAGE CONFIGURATION =====
+  const STORAGE_KEY = 'cinewave_accounts'; // Key used to store the account list in localStorage
   const PHONE_LENGTH = 10;
+  const REDIRECT_DELAY = 1500;
   const DEMO_ACCOUNTS = [
-    // Tài khoản demo mặc định, luôn có thể dùng để đăng nhập
+    // Default demo account that is always available for login
     {
       phone: '0901234567',
       password: '123456',
     },
   ];
 
-  // ===== LẤY CÁC PHẦN TỬ DOM CẦN THIẾT =====
+  // ===== GET THE REQUIRED DOM ELEMENTS =====
   const loginForm = document.getElementById('login-form');
   const loginPhoneInput = document.getElementById('login-phone');
   const loginPhoneError = document.getElementById('login-phone-error');
@@ -22,43 +23,47 @@
   const loginButton = document.getElementById('login-continue-btn');
 
   /**
-   * Lấy danh sách tài khoản từ localStorage và luôn gộp thêm tài khoản demo.
-   * Nếu localStorage bị lỗi hoặc rỗng, trang vẫn đăng nhập được bằng tài khoản demo.
+   * Read the account list from localStorage and always include the demo account.
+   * If localStorage is empty or invalid, the demo account remains available.
    */
   function getAccounts() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      // Chưa có dữ liệu lưu trữ -> chỉ trả về tài khoản demo
+      // No stored data: return only the demo account
       if (!raw) return [...DEMO_ACCOUNTS];
 
       const parsed = JSON.parse(raw);
-      // Dữ liệu không đúng định dạng mảng -> fallback về tài khoản demo
+      // Invalid array data: fall back to the demo account
       if (!Array.isArray(parsed)) return [...DEMO_ACCOUNTS];
 
-      // Loại bỏ các tài khoản đã lưu bị trùng số điện thoại với tài khoản demo
-      // để tránh đăng nhập nhầm hoặc xung đột dữ liệu
-      const savedAccounts = parsed.filter((account) => {
-        return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
-      });
+      // Remove saved accounts that duplicate the demo phone number
+      // to prevent ambiguous logins or data conflicts
+      const savedAccounts = parsed
+        .filter((account) => {
+          return account && typeof account.phone === 'string' && typeof account.password === 'string';
+        })
+        .filter((account) => {
+          return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
+        });
 
-      // Trả về tài khoản demo + tài khoản đã lưu (không trùng)
+      // Return the demo account and all unique saved accounts
       return [...DEMO_ACCOUNTS, ...savedAccounts];
     } catch {
-      // Có lỗi khi đọc/parse dữ liệu -> fallback an toàn về tài khoản demo
+      // Reading or parsing failed: safely fall back to the demo account
       return [...DEMO_ACCOUNTS];
     }
   }
 
-  // Tìm tài khoản theo số điện thoại trong danh sách (demo + đã lưu)
+  // Find an account by phone number in the combined demo and saved list
   function findAccount(phone) {
     return getAccounts().find((account) => account.phone === phone) || null;
   }
 
   /**
-   * Kiểm tra hợp lệ số điện thoại:
-   * - Bắt buộc phải nhập
-   * - Chỉ được chứa chữ số
-   * - Phải đúng độ dài quy định (PHONE_LENGTH)
+   * Validate a phone number:
+   * - A value is required.
+   * - Only digits are allowed.
+   * - The value must match PHONE_LENGTH.
    */
   function validatePhone(rawValue) {
     const value = rawValue.trim();
@@ -73,16 +78,18 @@
   }
 
   function setFieldError(input, errorEl, message) {
-    input.classList.toggle('input-error', Boolean(message));
-    errorEl.classList.toggle('show', Boolean(message));
+    const hasError = Boolean(message);
+    input.classList.toggle('input-error', hasError);
+    input.setAttribute('aria-invalid', String(hasError));
+    errorEl.classList.toggle('show', hasError);
     errorEl.textContent = message;
   }
 
   function showNotice(el, message, type = 'error') {
+    el.hidden = false;
     el.textContent = message;
     el.classList.toggle('success', type === 'success');
     el.classList.add('show');
-    el.hidden = false;
   }
 
   function hideNotice(el) {
@@ -91,8 +98,8 @@
     el.hidden = true;
   }
 
-  // ===== XỬ LÝ NÚT HIỆN/ẨN MẬT KHẨU =====
-  // Mỗi nút dùng thuộc tính data-target để biết input nào cần đổi type (password/text)
+  // ===== HANDLE PASSWORD VISIBILITY BUTTONS =====
+  // Each button uses data-target to identify which input type should be toggled
   document.querySelectorAll('.toggle-visibility').forEach((button) => {
     button.addEventListener('click', () => {
       const targetInput = document.getElementById(button.dataset.target);
@@ -105,67 +112,72 @@
     });
   });
 
-  // Khi người dùng nhập lại số điện thoại -> xóa lỗi cũ và ẩn thông báo chung
+  // Clear the previous error and shared notice when the phone value changes
   loginPhoneInput.addEventListener('input', () => {
     setFieldError(loginPhoneInput, loginPhoneError, '');
     hideNotice(loginNotice);
   });
 
-  // Khi người dùng nhập lại mật khẩu -> xóa lỗi cũ và ẩn thông báo chung
+  // Clear the previous error and shared notice when the password changes
   loginPasswordInput.addEventListener('input', () => {
     setFieldError(loginPasswordInput, loginPasswordError, '');
     hideNotice(loginNotice);
   });
 
   /**
-   * LUỒNG XỬ LÝ ĐĂNG NHẬP:
-   * 1. Chặn hành vi submit mặc định của form.
-   * 2. Validate số điện thoại và mật khẩu.
-   * 3. Tìm tài khoản trong localStorage + tài khoản demo.
-   * 4. Nếu đúng thông tin, hiển thị thông báo thành công và chuyển sang home.html.
+   * LOGIN FLOW:
+   * 1. Prevent the form's default submission.
+   * 2. Validate the phone number and password.
+   * 3. Find the account in localStorage or the demo account list.
+   * 4. Show a success message and redirect to the home page.
    */
   loginForm.addEventListener('submit', (event) => {
-    // Bước 1: Ngăn form load lại trang theo cách mặc định của trình duyệt
+    // Step 1: prevent the browser from reloading the page
     event.preventDefault();
     hideNotice(loginNotice);
 
-    // Bước 2a: Kiểm tra định dạng số điện thoại
+    // Step 2a: validate the phone number format
     const phoneResult = validatePhone(loginPhoneInput.value);
     if (!phoneResult.valid) {
       setFieldError(loginPhoneInput, loginPhoneError, phoneResult.message);
-      return; // Dừng lại nếu số điện thoại không hợp lệ
+      loginPhoneInput.focus();
+      return; // Stop when the phone number is invalid
     }
     setFieldError(loginPhoneInput, loginPhoneError, '');
 
-    // Bước 2b: Kiểm tra mật khẩu có được nhập hay không
-    if (!loginPasswordInput.value.trim()) {
+    // Step 2b: ensure a password was entered
+    const password = loginPasswordInput.value;
+    if (!password.trim()) {
       setFieldError(loginPasswordInput, loginPasswordError, 'Vui lòng nhập mật khẩu.');
+      loginPasswordInput.focus();
       return;
     }
     setFieldError(loginPasswordInput, loginPasswordError, '');
 
-    // Bước 3: Tìm tài khoản tương ứng với số điện thoại đã nhập
+    // Step 3: find the account associated with the entered phone number
     const account = findAccount(phoneResult.value);
     if (!account) {
-      showNotice(loginNotice, 'Số điện thoại chưa được đăng ký.');
+      setFieldError(loginPhoneInput, loginPhoneError, 'Số điện thoại chưa được đăng ký.');
+      loginPhoneInput.focus();
       return;
     }
 
-    // Kiểm tra mật khẩu có khớp với tài khoản tìm được không
-    if (account.password !== loginPasswordInput.value.trim()) {
-      showNotice(loginNotice, 'Mật khẩu không đúng.');
+    // Check whether the entered password matches the account
+    if (account.password !== password) {
+      setFieldError(loginPasswordInput, loginPasswordError, 'Mật khẩu không đúng.');
+      loginPasswordInput.focus();
       return;
     }
 
-    // Bước 4: Đăng nhập thành công -> thông báo và chuyển hướng sang trang chủ
+    // Step 4: show a success message and redirect to the home page
     showNotice(loginNotice, 'Đăng nhập thành công! Đang chuyển hướng...', 'success');
     loginButton.disabled = true;
     loginPhoneInput.value = '';
     loginPasswordInput.value = '';
 
-    // Trì hoãn 500ms để người dùng kịp thấy thông báo trước khi chuyển trang
+    // Keep the status visible long enough to be read before redirecting.
     setTimeout(() => {
-      window.location.href = 'home.html';
-    }, 500);
+      window.location.href = '/index.html';
+    }, REDIRECT_DELAY);
   });
 })();

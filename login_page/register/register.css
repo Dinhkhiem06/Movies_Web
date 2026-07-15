@@ -6,7 +6,7 @@
 }
 
 .btn-text:hover {
-  color: var(--primary-dark);
+  color: var(--primary-hover);
   text-decoration: underline;
 }
 
@@ -30,12 +30,13 @@
 
 .otp-box {
   width: 100%;
+  min-height: 2.75rem;
   aspect-ratio: 1 / 1;
   text-align: center;
   font-size: 1.25rem;
   font-weight: 600;
   background-color: var(--card-soft);
-  border: 0.09375rem solid var(--border);
+  border: 0.09375rem solid var(--control-border);
   border-radius: var(--radius-sm);
   color: var(--text);
   outline: none;
@@ -59,7 +60,7 @@
 }
 
 .otp-box.filled {
-  border-color: #4b5563;
+  border-color: var(--primary);
 }
 
 .otp-box.error {
@@ -72,7 +73,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   margin-bottom: 1.375rem;
   flex-wrap: wrap;
@@ -86,7 +87,7 @@
 
 .otp-demo {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--text-secondary);
   margin-top: 1.125rem;
   padding-top: 1rem;
@@ -106,7 +107,7 @@
   align-items: center;
   gap: 0.375rem;
   color: var(--text-secondary);
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   margin-bottom: 1.25rem;
   width: fit-content;
   transition: color var(--transition-fast);
@@ -114,6 +115,22 @@
 
 .otp-back:hover {
   color: var(--text);
+}
+
+@media (max-width: 22.5rem) {
+  .otp-inputs {
+    gap: 0.2rem;
+    margin-inline: -0.5rem;
+  }
+}
+
+@media (any-pointer: coarse) {
+  .btn-text,
+  .otp-back {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 @media (min-width: 30rem) {
@@ -127,8 +144,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .otp-box.error {
-    animation-duration: 0.001ms;
-    transition-duration: 0.001ms;
+  .otp-box:focus {
+    transform: none;
   }
 }

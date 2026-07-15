@@ -3,28 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineWave · Đăng ký</title>
-  <link rel="stylesheet" href="auth_common.css" />
-  <link rel="stylesheet" href="register.css" />
+  <title>Flix | Đăng ký</title>
+  <link rel="stylesheet" href="/login_page/common.css" />
+  <link rel="stylesheet" href="/login_page/register/register.css" />
 </head>
 <body>
+  <main class="auth-page">
+    <article class="auth-layout">
+      <header class="auth-header">
+        <a class="auth-header__home" href="/index.html" aria-label="Về trang chủ Flix">
+          <img class="auth-header__logo" src="/login_page/assets/movie_logo.png" width="500" height="500" alt="Flix" />
+        </a>
+      </header>
 
-  <header class="auth-header">
-    <img class="auth-header__logo" src="assets/movie_logo.png" alt="CineWave" />
-  </header>
+      <!-- ============================================================
+           This page contains two views: registration and OTP verification.
+           ============================================================ -->
+      <section class="auth-main">
+        <div class="auth-card">
 
-  <!-- ============================================================
-       Trang này có 2 view: register và otp
-       ============================================================ -->
-  <main class="auth-main">
-    <div class="auth-card">
-
-      <!-- ============ SECTION: ĐĂNG KÝ ============ -->
+      <!-- ============ SECTION: REGISTRATION ============ -->
       <section id="view-register" class="auth-view is-active" data-view="register" aria-labelledby="register-heading">
         <h1 id="register-heading" class="auth-title">Đăng ký</h1>
         <p class="auth-subtitle">Tạo tài khoản mới chỉ với vài giây.</p>
 
-        <p class="notice" id="register-notice" role="alert" hidden></p>
+        <p class="notice" id="register-notice" role="alert" aria-atomic="true" hidden></p>
 
         <form id="register-form" class="auth-form" novalidate>
           <fieldset class="form-fieldset">
@@ -41,11 +44,14 @@
                   placeholder="Nhập số điện thoại"
                   inputmode="numeric"
                   maxlength="10"
+                  pattern="[0-9]{10}"
                   autocomplete="tel"
+                  required
+                  aria-invalid="false"
                   aria-describedby="register-phone-error"
                 />
               </div>
-              <p class="field-error" id="register-phone-error"></p>
+              <p class="field-error" id="register-phone-error" aria-live="polite"></p>
             </div>
 
             <div class="form-group">
@@ -57,12 +63,15 @@
                   name="password"
                   class="text-input text-input--password"
                   placeholder="Ít nhất 6 ký tự"
+                  minlength="6"
                   autocomplete="new-password"
+                  required
+                  aria-invalid="false"
                   aria-describedby="register-password-error"
                 />
                 <button type="button" class="toggle-visibility" data-target="register-password" aria-label="Hiện mật khẩu">Hiện</button>
               </div>
-              <p class="field-error" id="register-password-error"></p>
+              <p class="field-error" id="register-password-error" aria-live="polite"></p>
             </div>
 
             <div class="form-group">
@@ -74,12 +83,15 @@
                   name="confirm-password"
                   class="text-input text-input--password"
                   placeholder="Nhập lại mật khẩu"
+                  minlength="6"
                   autocomplete="new-password"
+                  required
+                  aria-invalid="false"
                   aria-describedby="register-confirm-password-error"
                 />
                 <button type="button" class="toggle-visibility" data-target="register-confirm-password" aria-label="Hiện mật khẩu">Hiện</button>
               </div>
-              <p class="field-error" id="register-confirm-password-error"></p>
+              <p class="field-error" id="register-confirm-password-error" aria-live="polite"></p>
             </div>
           </fieldset>
 
@@ -88,11 +100,11 @@
 
         <p class="auth-footer">
           Bạn đã có tài khoản?
-          <a href="login.html" class="link">Đăng nhập</a>
+          <a href="/login_page/login/login.html" class="link">Đăng nhập</a>
         </p>
       </section>
 
-      <!-- ============ SECTION: XÁC THỰC OTP ============ -->
+      <!-- ============ SECTION: OTP VERIFICATION ============ -->
       <section id="view-otp" class="auth-view" data-view="otp" aria-labelledby="otp-heading" hidden>
         <button type="button" class="otp-back" id="otp-back">
           <span aria-hidden="true">‹</span> Quay lại
@@ -101,7 +113,7 @@
         <h1 id="otp-heading" class="auth-title">Xác thực số điện thoại</h1>
         <p class="otp-phone">Mã OTP đã được gửi đến <strong id="otp-phone-display">—</strong></p>
 
-        <p class="notice" id="otp-notice" role="alert" hidden></p>
+        <p class="notice" id="otp-notice" role="alert" aria-atomic="true" hidden></p>
 
         <form id="otp-form" class="auth-form" novalidate>
           <fieldset class="form-fieldset">
@@ -109,24 +121,24 @@
 
             <div class="otp-inputs" id="otp-inputs">
               <label class="visually-hidden" for="otp-0">Chữ số 1</label>
-              <input type="text" class="otp-box" id="otp-0" maxlength="1" inputmode="numeric" autocomplete="one-time-code" data-index="0" />
+              <input type="text" class="otp-box" id="otp-0" maxlength="6" inputmode="numeric" autocomplete="one-time-code" data-index="0" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
 
               <label class="visually-hidden" for="otp-1">Chữ số 2</label>
-              <input type="text" class="otp-box" id="otp-1" maxlength="1" inputmode="numeric" data-index="1" />
+              <input type="text" class="otp-box" id="otp-1" maxlength="1" inputmode="numeric" data-index="1" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
 
               <label class="visually-hidden" for="otp-2">Chữ số 3</label>
-              <input type="text" class="otp-box" id="otp-2" maxlength="1" inputmode="numeric" data-index="2" />
+              <input type="text" class="otp-box" id="otp-2" maxlength="1" inputmode="numeric" data-index="2" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
 
               <label class="visually-hidden" for="otp-3">Chữ số 4</label>
-              <input type="text" class="otp-box" id="otp-3" maxlength="1" inputmode="numeric" data-index="3" />
+              <input type="text" class="otp-box" id="otp-3" maxlength="1" inputmode="numeric" data-index="3" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
 
               <label class="visually-hidden" for="otp-4">Chữ số 5</label>
-              <input type="text" class="otp-box" id="otp-4" maxlength="1" inputmode="numeric" data-index="4" />
+              <input type="text" class="otp-box" id="otp-4" maxlength="1" inputmode="numeric" data-index="4" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
 
               <label class="visually-hidden" for="otp-5">Chữ số 6</label>
-              <input type="text" class="otp-box" id="otp-5" maxlength="1" inputmode="numeric" data-index="5" />
+              <input type="text" class="otp-box" id="otp-5" maxlength="1" inputmode="numeric" data-index="5" required aria-invalid="false" aria-describedby="otp-group-error otp-notice" />
             </div>
-            <p class="field-error" id="otp-group-error"></p>
+            <p class="field-error" id="otp-group-error" aria-live="polite"></p>
           </fieldset>
 
           <p class="otp-meta">
@@ -140,9 +152,11 @@
         <p class="otp-demo">Demo OTP: <code>123456</code></p>
       </section>
 
-    </div>
+        </div>
+      </section>
+    </article>
   </main>
 
-  <script src="register.js"></script>
+  <script src="/login_page/register/register.js"></script>
 </body>
 </html>
