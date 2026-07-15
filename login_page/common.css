@@ -32,17 +32,21 @@ ol {
   list-style: none;
 }
 
-/* Biến dùng chung: màu sắc, bo góc, bóng đổ, hiệu ứng và font. */
+/* Shared design tokens: colors, radii, shadows, transitions, and fonts. */
 :root {
   --bg: #000000;
   --card: #141414;
   --card-soft: #1c1c1c;
-  --primary: #1f83ed;
-  --primary-dark: #1568c4;
+  --primary: #4da3ff;
+  --primary-hover: #78b8ff;
+  --primary-action: #1473d4;
+  --primary-action-hover: #1268c4;
   --text: #ffffff;
   --text-secondary: #a3a3a3;
   --border: #333333;
-  --border-focus: #1f83ed;
+  --control-border: #606875;
+  --placeholder: #8b95a7;
+  --border-focus: var(--primary);
   --danger: #ef4444;
   --danger-bg: rgba(239, 68, 68, 0.12);
   --success: #22c55e;
@@ -62,7 +66,7 @@ ol {
   --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Layout nền trang: cho phép cuộn cả trang thay vì chỉ cuộn trong card. */
+/* Page layout: allow the entire page to scroll instead of only the card. */
 body {
   min-height: 100vh;
   min-height: 100dvh;
@@ -90,7 +94,25 @@ body::before {
   z-index: 0;
 }
 
-/* Header chung: đặt logo phía trên card và nổi trên lớp nền. */
+/* Semantic wrappers that preserve the body > main > article > section structure. */
+.auth-page {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Shared header: place the logo above the card and over the background layer. */
 .auth-header {
   position: relative;
   z-index: 1;
@@ -100,12 +122,35 @@ body::before {
   padding: 0.875rem 1rem 0;
 }
 
+.auth-header__home {
+  display: inline-flex;
+  border-radius: var(--radius-sm);
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.auth-header__home:hover {
+  transform: scale(1.06);
+  opacity: 0.9;
+}
+
+.auth-header__home:focus-visible {
+  outline: 0.125rem solid var(--primary);
+  outline-offset: 0.25rem;
+}
+
+a:focus-visible,
+button:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 0.125rem solid var(--primary);
+  outline-offset: 0.1875rem;
+}
+
 .auth-header__logo {
   height: 3rem;
   width: auto;
 }
 
-/* Vùng chính: căn card vào giữa màn hình nhưng vẫn giữ cơ chế cuộn theo trang. */
+/* Main content area: center the card while keeping page-level scrolling. */
 .auth-main {
   position: relative;
   z-index: 1;
@@ -118,7 +163,7 @@ body::before {
   overflow: visible;
 }
 
-/* Card dùng chung cho login, register và OTP. */
+/* Shared card for login, registration, and OTP verification. */
 .auth-card {
   width: 100%;
   max-width: 27.5rem;
@@ -130,7 +175,7 @@ body::before {
   overflow: visible;
 }
 
-/* Mỗi màn hình con là một auth-view; view có hidden sẽ bị ẩn khỏi layout. */
+/* Each subview is an auth-view; hidden views are removed from the layout. */
 .auth-view {
   display: flex;
   flex-direction: column;
@@ -144,7 +189,7 @@ body::before {
   animation: viewIn var(--transition-mid);
 }
 
-/* Hiệu ứng chuyển view nhẹ, chủ yếu dùng khi từ register sang OTP. */
+/* Subtle view transition, mainly used when moving from registration to OTP. */
 @keyframes viewIn {
   from {
     opacity: 0;
@@ -156,7 +201,7 @@ body::before {
   }
 }
 
-/* Tiêu đề và mô tả ngắn phía trên mỗi form. */
+/* Heading and short description displayed above each form. */
 .auth-title {
   font-family: var(--font-display);
   font-size: 1.375rem;
@@ -169,12 +214,12 @@ body::before {
 .auth-subtitle {
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   margin-bottom: 1.25rem;
 }
 
-/* Form chung: fieldset, label, input và các trạng thái focus/error/success. */
+/* Shared form styles: fieldset, label, input, and focus/error/success states. */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -194,7 +239,7 @@ body::before {
 }
 
 .form-label {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   margin-bottom: 0.5rem;
@@ -210,17 +255,17 @@ body::before {
   width: 100%;
   padding: 0.75rem 1rem;
   background-color: var(--card-soft);
-  border: 0.09375rem solid var(--border);
+  border: 0.09375rem solid var(--control-border);
   border-radius: var(--radius-md);
   color: var(--text);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
     background-color var(--transition-fast);
 }
 
 .text-input::placeholder {
-  color: #6b7280;
+  color: var(--placeholder);
 }
 
 .text-input:-webkit-autofill,
@@ -267,7 +312,7 @@ body::before {
 .field-error {
   display: none;
   color: var(--danger);
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   margin-top: 0.4375rem;
   padding-left: 0.125rem;
 }
@@ -288,7 +333,7 @@ body::before {
   }
 }
 
-/* Input mật khẩu có nút Hiện/Ẩn nằm bên phải. */
+/* Password input with a show/hide button on the right. */
 .text-input--password {
   padding-left: 1rem;
   padding-right: 4rem;
@@ -296,7 +341,12 @@ body::before {
 
 .toggle-visibility {
   position: absolute;
-  right: 0.75rem;
+  right: 0.25rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -310,12 +360,13 @@ body::before {
   background-color: rgba(255, 255, 255, 0.06);
 }
 
-/* Button dùng chung cho login, register và OTP. */
+/* Shared button styles for login, registration, and OTP verification. */
 .btn {
   width: 100%;
+  min-height: 2.75rem;
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -326,20 +377,20 @@ body::before {
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  background-color: var(--primary-action);
   color: #ffffff;
-  box-shadow: 0 0.5rem 1.25rem -0.375rem rgba(31, 131, 237, 0.55);
+  box-shadow: 0 0.5rem 1.25rem -0.375rem rgba(20, 115, 212, 0.55);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background-color: var(--primary-action-hover);
   transform: translateY(-0.0625rem);
-  box-shadow: 0 0.75rem 1.5rem -0.375rem rgba(31, 131, 237, 0.65);
+  box-shadow: 0 0.75rem 1.5rem -0.375rem rgba(18, 104, 196, 0.65);
 }
 
 .btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 0.375rem 0.875rem -0.375rem rgba(31, 131, 237, 0.5);
+  box-shadow: 0 0.375rem 0.875rem -0.375rem rgba(20, 115, 212, 0.5);
 }
 
 .btn-primary:disabled {
@@ -350,7 +401,7 @@ body::before {
 }
 
 
-/* Footer trong card, dùng cho link qua lại giữa login và register. */
+/* Card footer containing links between login and registration. */
 .auth-footer {
   text-align: center;
   margin-top: 1.25rem;
@@ -366,11 +417,11 @@ body::before {
 }
 
 .link:hover {
-  color: var(--primary-dark);
+  color: var(--primary-hover);
   text-decoration: underline;
 }
 
-/* Notice hiển thị lỗi hoặc thông báo thành công ở đầu form. */
+/* Notice used for errors or success messages at the top of a form. */
 .notice {
   display: flex;
   align-items: center;
@@ -380,7 +431,7 @@ body::before {
   color: #fca5a5;
   border-radius: var(--radius-sm);
   padding: 0.75rem 0.875rem;
-  font-size: 0.84rem;
+  font-size: 0.875rem;
   line-height: 1.45;
   margin-bottom: 1.125rem;
 }
@@ -399,7 +450,7 @@ body::before {
   color: #86efac;
 }
 
-/* Ẩn nội dung khỏi màn hình nhưng vẫn cho trình đọc màn hình đọc được. */
+/* Hide content visually while keeping it available to screen readers. */
 .visually-hidden {
   position: absolute;
   width: 0.0625rem;
@@ -412,7 +463,18 @@ body::before {
   border: 0;
 }
 
-/* Mobile-first: mặc định cho mobile, breakpoint bên dưới mở rộng lên tablet/desktop. */
+/* Keep the smallest supported phone layout spacious without horizontal overflow. */
+@media (max-width: 22.5rem) {
+  .auth-main {
+    padding: 0.5rem;
+  }
+
+  .auth-card {
+    padding-inline: 0.75rem;
+  }
+}
+
+/* Mobile-first defaults; the breakpoints below expand the layout for larger screens. */
 @media (min-width: 30rem) {
   .auth-header {
     padding-top: 1rem;
@@ -443,21 +505,45 @@ body::before {
 
 @media (min-width: 64rem) {
   .auth-card {
-    max-width: 29rem;
+    max-width: 32rem;
+    padding: 2.25rem 2.5rem 2rem;
   }
 
   .auth-title {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+  }
+}
+
+/* Reduce only the outer vertical spacing on wide, short laptop viewports. */
+@media (min-width: 64rem) and (max-height: 45rem) {
+  .auth-header {
+    padding-top: 0.75rem;
+  }
+
+  .auth-main {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+@media (any-pointer: coarse) {
+  .link {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .auth-view.is-active,
-  .text-input.input-error,
-  .notice.show,
-  .field-error.show,
-  .btn-primary:hover {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms;
+    animation-iteration-count: 1;
     transition-duration: 0.001ms;
+  }
+
+  .auth-header__home:hover,
+  .btn-primary:hover {
+    transform: none;
   }
 }

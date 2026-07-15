@@ -1,15 +1,16 @@
 (() => {
   'use strict';
 
-  // ===== CẤU HÌNH CHO TRANG ĐĂNG KÝ VÀ OTP =====
-  // DEMO_OTP là mã OTP cố định (thay cho việc gửi SMS thật).
-  // DEMO_ACCOUNTS là tài khoản có sẵn để test đăng nhập nhanh.
+  // ===== REGISTRATION AND OTP PAGE CONFIGURATION =====
+  // DEMO_OTP is a fixed code that replaces a real SMS flow.
+  // DEMO_ACCOUNTS contains accounts for quick login testing.
   const STORAGE_KEY = 'cinewave_accounts';
   const DEMO_OTP = '123456';
   const OTP_DURATION = 120;
   const PHONE_LENGTH = 10;
   const OTP_LENGTH = 6;
   const PASSWORD_MIN_LENGTH = 6;
+  const REDIRECT_DELAY = 1500;
   const DEMO_ACCOUNTS = [
     {
       phone: '0901234567',
@@ -18,26 +19,27 @@
   ];
 
   /**
-   * STATE TẠM CỦA QUÁ TRÌNH ĐĂNG KÝ.
-   * Tài khoản chỉ thực sự được lưu vào localStorage sau khi xác thực OTP thành công,
-   * nên trước đó phone/password phải giữ tạm ở đây.
+   * TEMPORARY REGISTRATION STATE.
+   * An account is stored in localStorage only after successful OTP verification,
+   * so the phone number and password are kept here until then.
    */
   const state = {
     phone: null,
     password: null,
     timerId: null,
+    expiresAt: null,
     remaining: OTP_DURATION,
   };
 
-  // ===== HAI VIEW NẰM CHUNG TRONG register.html =====
-  // view "register": form đăng ký ban đầu
-  // view "otp": form nhập mã OTP
+  // ===== TWO VIEWS SHARED BY register.html =====
+  // The "register" view contains the initial registration form.
+  // The "otp" view contains the OTP input form.
   const views = {
     register: document.getElementById('view-register'),
     otp: document.getElementById('view-otp'),
   };
 
-  // ----- Các phần tử DOM của form đăng ký -----
+  // ----- Registration form DOM elements -----
   const registerForm = document.getElementById('register-form');
   const registerPhoneInput = document.getElementById('register-phone');
   const registerPhoneError = document.getElementById('register-phone-error');
@@ -47,11 +49,11 @@
   const registerConfirmError = document.getElementById('register-confirm-password-error');
   const registerNotice = document.getElementById('register-notice');
 
-  // ----- Các phần tử DOM của form OTP -----
+  // ----- OTP form DOM elements -----
   const otpPhoneDisplay = document.getElementById('otp-phone-display');
   const otpNotice = document.getElementById('otp-notice');
   const otpInputsWrap = document.getElementById('otp-inputs');
-  const otpBoxes = Array.from(otpInputsWrap.querySelectorAll('.otp-box')); // Danh sách 6 ô nhập OTP
+  const otpBoxes = Array.from(otpInputsWrap.querySelectorAll('.otp-box')); // List of six OTP inputs
   const otpGroupError = document.getElementById('otp-group-error');
   const otpTimerWrap = document.getElementById('otp-timer-wrap');
   const otpTimerEl = document.getElementById('otp-timer');
@@ -61,8 +63,8 @@
   const otpForm = document.getElementById('otp-form');
 
   /**
-   * Lấy tài khoản từ localStorage và gộp với tài khoản demo.
-   * Lọc trùng số điện thoại để tài khoản demo không bị bản ghi trong localStorage ghi đè.
+   * Read accounts from localStorage and merge them with the demo account.
+   * Remove duplicate phone numbers so saved data cannot override the demo account.
    */
   function getAccounts() {
     try {
@@ -72,37 +74,51 @@
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [...DEMO_ACCOUNTS];
 
-      const savedAccounts = parsed.filter((account) => {
-        return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
-      });
+      const savedAccounts = parsed
+        .filter((account) => {
+          return account && typeof account.phone === 'string' && typeof account.password === 'string';
+        })
+        .filter((account) => {
+          return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
+        });
 
       return [...DEMO_ACCOUNTS, ...savedAccounts];
     } catch {
-      // Dữ liệu lỗi/hỏng -> vẫn cho phép dùng tài khoản demo
+      // Invalid data: keep the demo account available
       return [...DEMO_ACCOUNTS];
     }
   }
 
-  // Tìm tài khoản theo số điện thoại, dùng để kiểm tra trùng khi đăng ký
+  // Find an account by phone number to detect duplicate registrations
   function findAccount(phone) {
     return getAccounts().find((account) => account.phone === phone) || null;
   }
 
   /**
-   * Lưu tài khoản mới sau khi OTP xác thực đúng.
-   * Phần này chỉ giả lập database cho web tĩnh bằng localStorage.
+   * Save a new account after successful OTP verification.
+   * localStorage acts as a mock database for this static website.
    */
   function saveAccount(phone, password) {
-    const accounts = getAccounts();
+    try {
+      const accounts = getAccounts();
 
-    // Chỉ thêm nếu số điện thoại chưa tồn tại, tránh lưu trùng
-    if (!accounts.some((account) => account.phone === phone)) {
-      accounts.push({ phone, password });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+      if (accounts.some((account) => account.phone === phone)) {
+        return { ok: false, reason: 'duplicate' };
+      }
+
+      const savedAccounts = accounts.filter((account) => {
+        return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
+      });
+
+      savedAccounts.push({ phone, password });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAccounts));
+      return { ok: true };
+    } catch {
+      return { ok: false, reason: 'storage' };
     }
   }
 
-  // Validate số điện thoại khi submit form đăng ký
+  // Validate the phone number when the registration form is submitted
   function validatePhone(rawValue) {
     const value = rawValue.trim();
 
@@ -115,12 +131,11 @@
     return { valid: true, value };
   }
 
-  // Validate mật khẩu; trim để tránh trường hợp nhập toàn khoảng trắng
-  // hoặc dư khoảng trắng ở đầu/cuối
+  // Validate the password without silently changing leading or trailing spaces.
   function validatePassword(rawValue) {
-    const value = rawValue.trim();
+    const value = rawValue;
 
-    if (!value) return { valid: false, message: 'Vui lòng nhập mật khẩu.' };
+    if (!value.trim()) return { valid: false, message: 'Vui lòng nhập mật khẩu.' };
     if (value.length < PASSWORD_MIN_LENGTH) {
       return { valid: false, message: `Mật khẩu phải có ít nhất ${PASSWORD_MIN_LENGTH} ký tự.` };
     }
@@ -128,31 +143,33 @@
     return { valid: true, value };
   }
 
-  // ===== CÁC HÀM HỖ TRỢ HIỂN THỊ LỖI / THÔNG BÁO =====
+  // ===== ERROR AND NOTICE DISPLAY HELPERS =====
 
-  // Hiển thị hoặc xóa lỗi cho một ô input cụ thể
+  // Show or clear the error for a specific input
   function setFieldError(input, errorEl, message) {
-    input.classList.toggle('input-error', Boolean(message));
-    errorEl.classList.toggle('show', Boolean(message));
+    const hasError = Boolean(message);
+    input.classList.toggle('input-error', hasError);
+    input.setAttribute('aria-invalid', String(hasError));
+    errorEl.classList.toggle('show', hasError);
     errorEl.textContent = message;
   }
 
-  // Hiển thị thông báo chung (lỗi hoặc thành công) trên form
+  // Show a shared error or success notice on the form
   function showNotice(el, message, type = 'error') {
+    el.hidden = false;
     el.textContent = message;
     el.classList.toggle('success', type === 'success');
     el.classList.add('show');
-    el.hidden = false;
   }
 
-  // Ẩn thông báo chung, đưa về trạng thái ban đầu
+  // Hide the shared notice and restore its initial state
   function hideNotice(el) {
     el.classList.remove('show', 'success');
     el.textContent = '';
     el.hidden = true;
   }
 
-  // Chuyển đổi qua lại giữa view đăng ký và view OTP
+  // Switch between the registration and OTP views
   function showView(name) {
     Object.entries(views).forEach(([key, el]) => {
       const isTarget = key === name;
@@ -161,9 +178,9 @@
     });
   }
 
-  // ===== LIVE VALIDATION (kiểm tra ngay khi người dùng đang gõ) =====
+  // ===== LIVE VALIDATION =====
 
-  // Live validation cho số điện thoại: chỉ báo lỗi khi có ký tự không phải số
+  // Report a phone error as soon as a non-digit character is entered
   function updatePhoneLiveState() {
     const raw = registerPhoneInput.value;
     const isDigitsOnly = /^\d*$/.test(raw);
@@ -175,15 +192,15 @@
     }
 
     setFieldError(registerPhoneInput, registerPhoneError, '');
-    // Đánh dấu input-success khi đã nhập đủ số ký tự yêu cầu
+    // Mark the input as successful when it reaches the required length
     registerPhoneInput.classList.toggle('input-success', raw.length === PHONE_LENGTH);
   }
 
-  // Live validation cho mật khẩu: báo lỗi nếu đang nhập nhưng chưa đủ độ dài tối thiểu
+  // Report a password error while its value is shorter than the minimum length
   function updatePasswordLiveState() {
-    const value = registerPasswordInput.value.trim();
+    const value = registerPasswordInput.value;
 
-    if (!value) {
+    if (!value.trim()) {
       registerPasswordInput.classList.remove('input-success');
       setFieldError(registerPasswordInput, registerPasswordError, '');
       return;
@@ -199,67 +216,125 @@
     registerPasswordInput.classList.add('input-success');
   }
 
-  // ===== CÁC HÀM XỬ LÝ Ô NHẬP OTP =====
+  // ===== OTP INPUT HELPERS =====
 
-  // Reset toàn bộ ô OTP về trạng thái ban đầu (dùng khi chuyển view, gửi lại mã, v.v.)
+  function setOtpValidation(message = '', invalidBoxes = []) {
+    const invalidSet = new Set(invalidBoxes);
+
+    otpGroupError.textContent = message;
+    otpGroupError.classList.toggle('show', Boolean(message));
+
+    otpBoxes.forEach((box) => {
+      const isInvalid = invalidSet.has(box);
+      box.classList.toggle('error', isInvalid);
+      box.setAttribute('aria-invalid', String(isInvalid));
+    });
+  }
+
+  function refreshOtpValidationAfterEdit(hadValidationError) {
+    const isExpired = state.expiresAt === null
+      ? state.remaining <= 0
+      : getRemainingSeconds() <= 0;
+
+    if (isExpired) {
+      setOtpValidation('', otpBoxes);
+      return false;
+    }
+
+    if (!hadValidationError) {
+      setOtpValidation();
+      return true;
+    }
+
+    const emptyBoxes = otpBoxes.filter((box) => !box.value);
+    const message = emptyBoxes.length
+      ? `Vui lòng nhập đầy đủ ${OTP_LENGTH} chữ số OTP.`
+      : '';
+    setOtpValidation(message, emptyBoxes);
+    return true;
+  }
+
+  // Reset all OTP inputs when switching views, resending the code, and so on
   function clearOtpBoxes() {
     otpBoxes.forEach((box) => {
       box.value = '';
-      box.classList.remove('filled', 'error');
+      box.classList.remove('filled');
     });
 
-    otpGroupError.textContent = '';
-    otpGroupError.classList.remove('show');
+    setOtpValidation();
   }
 
-  // Ghép giá trị 6 ô lại thành một chuỗi OTP hoàn chỉnh
+  // Distribute an autofilled or pasted code across the remaining OTP boxes.
+  function distributeOtpDigits(rawValue, startIndex = 0) {
+    const availableLength = OTP_LENGTH - startIndex;
+    const digits = rawValue.replace(/\D/g, '').slice(0, availableLength).split('');
+    if (!digits.length) return;
+
+    digits.forEach((digit, offset) => {
+      const box = otpBoxes[startIndex + offset];
+      box.value = digit;
+      box.classList.add('filled');
+      box.setAttribute('aria-invalid', 'false');
+    });
+
+    const firstEmptyIndex = startIndex + digits.length;
+    const focusIndex = firstEmptyIndex < OTP_LENGTH ? firstEmptyIndex : OTP_LENGTH - 1;
+    otpBoxes[focusIndex].focus();
+  }
+
+  // Combine the six input values into one complete OTP string
   function getOtpValue() {
     return otpBoxes.map((box) => box.value).join('');
   }
 
-  // Định dạng số giây thành mm:ss để hiển thị đếm ngược trên giao diện
+  // Format a number of seconds as mm:ss for the countdown display
   function formatTime(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
     const seconds = (totalSeconds % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
   }
 
-  // Dừng timer cũ (nếu có) trước khi tạo timer mới, tránh chạy nhiều setInterval cùng lúc
+  function getRemainingSeconds() {
+    if (state.expiresAt === null) return 0;
+    return Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+  }
+
+  // Stop the previous timer before creating another interval
   function stopTimer() {
-    if (state.timerId) {
+    if (state.timerId !== null) {
       clearInterval(state.timerId);
       state.timerId = null;
     }
+
+    state.expiresAt = null;
   }
 
-  // Đếm ngược thời gian hiệu lực của OTP.
-  // Khi hết hạn thì hiện nút "Gửi lại mã" và chặn xác thực OTP.
+  function updateTimer() {
+    state.remaining = getRemainingSeconds();
+    otpTimerEl.textContent = formatTime(state.remaining);
+
+    if (state.remaining > 0) return;
+
+    stopTimer();
+    state.remaining = 0;
+    otpTimerWrap.style.display = 'none';
+    otpResendBtn.hidden = false;
+    showNotice(otpNotice, 'Mã OTP đã hết hiệu lực. Vui lòng gửi lại mã mới.');
+  }
+
+  // Count down the OTP validity period.
+  // When it expires, show the resend button and block verification.
   function startTimer() {
     stopTimer();
+    state.expiresAt = Date.now() + OTP_DURATION * 1000;
     state.remaining = OTP_DURATION;
     otpTimerEl.textContent = formatTime(state.remaining);
     otpTimerWrap.style.display = 'inline';
     otpResendBtn.hidden = true;
-
-    state.timerId = setInterval(() => {
-      state.remaining -= 1;
-
-      if (state.remaining <= 0) {
-        // Hết thời gian: dừng đếm, ẩn đồng hồ, hiện nút gửi lại
-        stopTimer();
-        state.remaining = 0;
-        otpTimerEl.textContent = formatTime(state.remaining);
-        otpTimerWrap.style.display = 'none';
-        otpResendBtn.hidden = false;
-        showNotice(otpNotice, 'Mã OTP đã hết hiệu lực. Vui lòng gửi lại mã mới.');
-        return;
-      }
-
-      otpTimerEl.textContent = formatTime(state.remaining);
-    }, 1000);
+    state.timerId = setInterval(updateTimer, 1000);
   }
 
-  // Sau khi form đăng ký hợp lệ, chuyển sang view OTP và bắt đầu đếm ngược
+  // Open the OTP view and start the countdown after valid registration input
   function enterOtpView() {
     otpPhoneDisplay.textContent = state.phone;
     otpConfirmBtn.disabled = false;
@@ -267,10 +342,10 @@
     clearOtpBoxes();
     showView('otp');
     startTimer();
-    otpBoxes[0].focus(); // Focus sẵn vào ô đầu tiên để người dùng gõ luôn
+    otpBoxes[0].focus(); // Focus the first input so the user can start typing immediately
   }
 
-  // ===== NÚT HIỆN/ẨN MẬT KHẨU (dùng chung cho cả password và confirm password) =====
+  // ===== PASSWORD VISIBILITY BUTTONS =====
   document.querySelectorAll('.toggle-visibility').forEach((button) => {
     button.addEventListener('click', () => {
       const targetInput = document.getElementById(button.dataset.target);
@@ -283,167 +358,193 @@
     });
   });
 
-  // Live validation khi người dùng gõ vào từng ô
+  // Run live validation as the user types
   registerPhoneInput.addEventListener('input', updatePhoneLiveState);
   registerPasswordInput.addEventListener('input', updatePasswordLiveState);
   registerConfirmInput.addEventListener('input', () => {
-    // Chỉ cần xóa lỗi cũ, việc so khớp mật khẩu sẽ kiểm tra lại khi submit
+    // Clear the previous error; matching is checked again on submission
     setFieldError(registerConfirmInput, registerConfirmError, '');
   });
 
   /**
-   * LUỒNG XỬ LÝ ĐĂNG KÝ:
-   * 1. Validate số điện thoại, mật khẩu, xác nhận mật khẩu.
-   * 2. Chặn đăng ký trùng số đã có trong localStorage hoặc tài khoản demo.
-   * 3. Lưu tạm phone/password vào state và chuyển qua view OTP.
+   * REGISTRATION FLOW:
+   * 1. Validate the phone number, password, and confirmation password.
+   * 2. Reject phone numbers already present in localStorage or the demo account.
+   * 3. Keep the phone number and password in state, then open the OTP view.
    */
   registerForm.addEventListener('submit', (event) => {
-    // Chặn hành vi submit mặc định (load lại trang) để tự xử lý bằng JS
+    // Prevent the default page reload and handle submission with JavaScript
     event.preventDefault();
     hideNotice(registerNotice);
 
-    // Bước 1a: Kiểm tra định dạng số điện thoại
+    // Step 1a: validate the phone number format
     const phoneResult = validatePhone(registerPhoneInput.value);
     if (!phoneResult.valid) {
       setFieldError(registerPhoneInput, registerPhoneError, phoneResult.message);
+      registerPhoneInput.focus();
       return;
     }
     setFieldError(registerPhoneInput, registerPhoneError, '');
 
-    // Bước 2: Kiểm tra số điện thoại đã được đăng ký trước đó chưa
+    // Step 2: check whether the phone number is already registered
     if (findAccount(phoneResult.value)) {
-      showNotice(registerNotice, 'Số điện thoại đã được đăng ký.');
+      setFieldError(registerPhoneInput, registerPhoneError, 'Số điện thoại đã được đăng ký.');
+      registerPhoneInput.focus();
       return;
     }
 
-    // Bước 1b: Kiểm tra định dạng mật khẩu
+    // Step 1b: validate the password
     const passwordResult = validatePassword(registerPasswordInput.value);
     if (!passwordResult.valid) {
       setFieldError(registerPasswordInput, registerPasswordError, passwordResult.message);
+      registerPasswordInput.focus();
       return;
     }
     setFieldError(registerPasswordInput, registerPasswordError, '');
 
-    // Bước 1c: Kiểm tra mật khẩu xác nhận có khớp với mật khẩu đã nhập không
-    if (registerConfirmInput.value.trim() !== passwordResult.value) {
+    // Step 1c: confirm that both passwords match
+    if (registerConfirmInput.value !== passwordResult.value) {
       setFieldError(registerConfirmInput, registerConfirmError, 'Mật khẩu xác nhận không khớp.');
+      registerConfirmInput.focus();
       return;
     }
     setFieldError(registerConfirmInput, registerConfirmError, '');
 
-    // Bước 3: Mọi thứ hợp lệ -> lưu tạm vào state và chuyển sang bước nhập OTP
+    // Step 3: store valid input in state and open the OTP step
     state.phone = phoneResult.value;
     state.password = passwordResult.value;
     enterOtpView();
   });
 
-  // Nút "Quay lại": hủy timer đang chạy và trở về view đăng ký
+  // Back button: stop the timer and return to the registration view
   otpBackBtn.addEventListener('click', () => {
     stopTimer();
     hideNotice(otpNotice);
     showView('register');
+    registerPhoneInput.focus();
   });
 
   /**
-   * ĐIỀU KHIỂN 6 Ô NHẬP OTP:
-   * - Chỉ nhận ký tự số.
-   * - Tự động chuyển focus sang ô tiếp theo khi nhập xong 1 ô.
-   * - Nhấn Backspace ở ô rỗng sẽ quay về ô trước đó.
-   * - Dán (paste) một chuỗi số sẽ tự động điền đầy đủ vào các ô.
+   * MANAGE THE SIX OTP INPUTS:
+   * - Accept digits only.
+   * - Move focus to the next input after a digit is entered.
+   * - Move back when Backspace is pressed in an empty input.
+   * - Distribute a pasted sequence across all inputs.
    */
   otpBoxes.forEach((box, index) => {
-    // Xử lý khi người dùng gõ vào từng ô
+    // Handle typing in each input
     box.addEventListener('input', () => {
-      const digitsOnly = box.value.replace(/\D/g, ''); // Loại bỏ mọi ký tự không phải số
-      box.value = digitsOnly.slice(-1); // Chỉ giữ lại ký tự số cuối cùng vừa gõ
-      box.classList.toggle('filled', box.value !== '');
-      box.classList.remove('error');
-      otpGroupError.classList.remove('show');
-      hideNotice(otpNotice);
+      const hadValidationError = otpGroupError.classList.contains('show')
+        || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
+      const digitsOnly = box.value.replace(/\D/g, ''); // Remove every non-digit character
 
-      // Nếu ô hiện tại đã có giá trị và chưa phải ô cuối -> nhảy sang ô kế tiếp
+      if (digitsOnly.length > 1) {
+        clearOtpBoxes();
+        distributeOtpDigits(digitsOnly);
+        if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
+        return;
+      }
+
+      box.value = digitsOnly.slice(-1); // Keep only the last digit entered
+      box.classList.toggle('filled', box.value !== '');
+      if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
+
+      // Move to the next input after the current one receives a value
       if (box.value && index < otpBoxes.length - 1) {
         otpBoxes[index + 1].focus();
       }
     });
 
-    // Xử lý phím Backspace để quay về ô trước khi ô hiện tại đang rỗng
+    // Move to the previous input when Backspace is pressed on an empty input
     box.addEventListener('keydown', (event) => {
       if (event.key === 'Backspace' && !box.value && index > 0) {
+        const hadValidationError = otpGroupError.classList.contains('show')
+          || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
         otpBoxes[index - 1].focus();
         otpBoxes[index - 1].value = '';
         otpBoxes[index - 1].classList.remove('filled');
+        if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
       }
     });
 
-    // Xử lý sự kiện dán (paste) toàn bộ mã OTP cùng lúc
+    // Handle pasting an entire OTP at once
     box.addEventListener('paste', (event) => {
-      event.preventDefault(); // Chặn hành vi dán mặc định của trình duyệt
+      event.preventDefault(); // Prevent the browser's default paste behavior
 
-      const pasted = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      const clipboard = event.clipboardData || window.clipboardData;
+      const pasted = clipboard ? clipboard.getData('text').replace(/\D/g, '') : '';
       if (!pasted) return;
 
+      const hadValidationError = otpGroupError.classList.contains('show')
+        || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
       clearOtpBoxes();
-      hideNotice(otpNotice);
-
-      const digits = pasted.slice(0, OTP_LENGTH).split('');
-      digits.forEach((digit, digitIndex) => {
-        otpBoxes[digitIndex].value = digit;
-        otpBoxes[digitIndex].classList.add('filled');
-      });
-
-      const nextIndex = Math.min(digits.length, OTP_LENGTH) - 1;
-      otpBoxes[nextIndex].focus();
+      distributeOtpDigits(pasted);
+      if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
     });
   });
 
   /**
-   * LUỒNG XÁC THỰC OTP:
-   * 1. Chặn nếu OTP đã hết hạn.
-   * 2. Chặn nếu chưa nhập đủ 6 số.
-   * 3. So sánh với DEMO_OTP.
-   * 4. Nếu đúng thì lưu tài khoản vào localStorage và quay về trang đăng nhập.
+   * OTP VERIFICATION FLOW:
+   * 1. Reject an expired OTP.
+   * 2. Require all six digits.
+   * 3. Compare the input with DEMO_OTP.
+   * 4. Save a valid account to localStorage and return to the login page.
    */
   otpForm.addEventListener('submit', (event) => {
-    event.preventDefault(); // Chặn submit mặc định để tự xử lý xác thực bằng JS
+    event.preventDefault(); // Handle verification with JavaScript instead of a default submission
 
     const value = getOtpValue();
 
-    // Bước 1: Kiểm tra OTP còn hiệu lực hay không
+    // Step 1: ensure the OTP is still valid
+    state.remaining = getRemainingSeconds();
     if (state.remaining <= 0) {
+      stopTimer();
+      state.remaining = 0;
       showNotice(otpNotice, 'Mã OTP đã hết hiệu lực. Vui lòng gửi lại mã mới.');
       otpTimerWrap.style.display = 'none';
       otpResendBtn.hidden = false;
-      otpBoxes.forEach((box) => box.classList.add('error'));
+      setOtpValidation('', otpBoxes);
       otpBoxes[0].focus();
       return;
     }
 
-    // Bước 2: Kiểm tra đã nhập đủ số lượng chữ số OTP chưa
+    // Step 2: ensure all OTP digits were entered
     if (value.length < OTP_LENGTH) {
-      showNotice(otpNotice, `Vui lòng nhập đầy đủ ${OTP_LENGTH} chữ số OTP.`);
-      otpBoxes.forEach((box) => {
-        if (!box.value) box.classList.add('error');
-      });
+      const emptyBoxes = otpBoxes.filter((box) => !box.value);
+      setOtpValidation(`Vui lòng nhập đầy đủ ${OTP_LENGTH} chữ số OTP.`, emptyBoxes);
+      emptyBoxes[0].focus();
       return;
     }
 
-    // Bước 3: So sánh mã đã nhập với mã OTP demo
+    // Step 3: compare the entered code with the demo OTP
     if (value !== DEMO_OTP) {
-      showNotice(otpNotice, 'Mã OTP không đúng. Vui lòng thử lại.');
       otpBoxes.forEach((box) => {
-        box.classList.add('error');
         box.value = '';
         box.classList.remove('filled');
       });
+      setOtpValidation('Mã OTP không đúng. Vui lòng thử lại.', otpBoxes);
       otpBoxes[0].focus();
       return;
     }
 
-    // Bước 4: OTP đúng -> lưu tài khoản chính thức và chuyển hướng về trang đăng nhập
+    // Step 4: save the verified account and redirect to the login page
     hideNotice(otpNotice);
+    const saveResult = saveAccount(state.phone, state.password);
+
+    if (!saveResult.ok) {
+      if (saveResult.reason === 'duplicate') {
+        stopTimer();
+        showView('register');
+        setFieldError(registerPhoneInput, registerPhoneError, 'Số điện thoại vừa được đăng ký.');
+        registerPhoneInput.focus();
+        return;
+      }
+
+      showNotice(otpNotice, 'Không thể lưu tài khoản trên trình duyệt này. Vui lòng thử lại.');
+      return;
+    }
+
     stopTimer();
-    saveAccount(state.phone, state.password);
 
     showNotice(otpNotice, 'Xác thực thành công! Vui lòng đăng nhập lại.', 'success');
     otpConfirmBtn.disabled = true;
@@ -451,15 +552,17 @@
     registerPhoneInput.value = '';
     registerPasswordInput.value = '';
     registerConfirmInput.value = '';
+    registerPhoneInput.classList.remove('input-success');
+    registerPasswordInput.classList.remove('input-success');
     clearOtpBoxes();
 
-    // Trì hoãn 700ms để người dùng kịp thấy thông báo thành công trước khi chuyển trang
+    // Keep the status visible long enough to be read before redirecting.
     setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 700);
+      window.location.href = '../login/login.html';
+    }, REDIRECT_DELAY);
   });
 
-  // Giả lập chức năng gửi lại OTP: reset ô nhập, hiện thông báo và chạy lại timer từ đầu
+  // Simulate resending an OTP by resetting the inputs, notice, and countdown
   otpResendBtn.addEventListener('click', () => {
     hideNotice(otpNotice);
     clearOtpBoxes();
