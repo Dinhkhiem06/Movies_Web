@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,16 +10,16 @@
 <body>
   <main class="auth-page">
     <article class="auth-layout">
-      <header class="auth-header">
-        <a class="auth-header__home" href="/index.html" aria-label="Về trang chủ Flix">
-          <img class="auth-header__logo" src="/login_page/assets/movie_logo.png" width="500" height="500" alt="Flix" />
-        </a>
-      </header>
-
-      <!-- ============================================================
-           This page contains two views: registration and OTP verification.
-           ============================================================ -->
       <section class="auth-main">
+        <header class="auth-header">
+          <a class="auth-header__home" href="/index.html" aria-label="Go to the Flix home page">
+            <img class="auth-header__logo" src="/login_page/assets/movie_logo.png" width="500" height="500" alt="Flix" />
+          </a>
+        </header>
+
+        <!-- ============================================================
+             This page contains two views: registration and OTP verification.
+             ============================================================ -->
         <div class="auth-card">
 
       <!-- ============ SECTION: REGISTRATION ============ -->
@@ -69,7 +69,7 @@
                   aria-invalid="false"
                   aria-describedby="register-password-error"
                 />
-                <button type="button" class="toggle-visibility" data-target="register-password" aria-label="Hiện mật khẩu">Show</button>
+                <button type="button" class="toggle-visibility" data-target="register-password" aria-label="Show password">Show</button>
               </div>
               <p class="field-error" id="register-password-error" aria-live="polite"></p>
             </div>
@@ -89,7 +89,7 @@
                   aria-invalid="false"
                   aria-describedby="register-confirm-password-error"
                 />
-                <button type="button" class="toggle-visibility" data-target="register-confirm-password" aria-label="Hiện mật khẩu">Hiện</button>
+                <button type="button" class="toggle-visibility" data-target="register-confirm-password" aria-label="Show password">Show</button>
               </div>
               <p class="field-error" id="register-confirm-password-error" aria-live="polite"></p>
             </div>

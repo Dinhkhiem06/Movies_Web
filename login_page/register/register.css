@@ -1,8 +1,9 @@
+/* Small text button */
 .btn-text {
   width: auto;
   padding: 0.5rem 0.25rem;
-  font-size: 0.875rem;
   color: var(--primary);
+  font-size: 0.875rem;
 }
 
 .btn-text:hover {
@@ -10,17 +11,19 @@
   text-decoration: underline;
 }
 
+/* OTP information */
 .otp-phone {
-  text-align: center;
+  margin-bottom: 1.5rem;
   color: var(--text);
+  text-align: center;
   font-size: 0.875rem;
-  margin: 0 0 1.5rem;
 }
 
 .otp-phone strong {
   color: var(--primary);
 }
 
+/* OTP inputs */
 .otp-inputs {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -32,29 +35,20 @@
   width: 100%;
   min-height: 2.75rem;
   aspect-ratio: 1 / 1;
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 600;
   background-color: var(--card-soft);
   border: 0.09375rem solid var(--control-border);
   border-radius: var(--radius-sm);
-  color: var(--text);
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-.otp-box:-webkit-autofill,
-.otp-box:-webkit-autofill:hover,
-.otp-box:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--text);
-  -webkit-box-shadow: 0 0 0 100rem var(--card-soft) inset;
-  box-shadow: 0 0 0 100rem var(--card-soft) inset;
-  caret-color: var(--text);
+  color: var(--text);
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: border-color var(--transition), box-shadow var(--transition),
+    transform var(--transition);
 }
 
 .otp-box:focus {
-  border-color: var(--border-focus);
+  border-color: var(--primary);
   box-shadow: 0 0 0 0.25rem rgba(31, 131, 237, 0.2);
   transform: scale(1.05);
 }
@@ -68,15 +62,16 @@
   animation: shake 0.32s ease;
 }
 
+/* OTP timer */
 .otp-meta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 1.375rem;
   flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 1.375rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
 }
 
 .otp-timer {
@@ -85,32 +80,34 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Demo OTP */
 .otp-demo {
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
   margin-top: 1.125rem;
   padding-top: 1rem;
   border-top: 0.0625rem dashed var(--border);
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.8125rem;
 }
 
 .otp-demo code {
-  background-color: var(--card-soft);
   padding: 0.125rem 0.4375rem;
+  background-color: var(--card-soft);
   border-radius: 0.3125rem;
   color: var(--primary);
   font-weight: 600;
 }
 
+/* Back button */
 .otp-back {
+  width: fit-content;
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  margin-bottom: 1.25rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
-  margin-bottom: 1.25rem;
-  width: fit-content;
-  transition: color var(--transition-fast);
+  transition: color var(--transition);
 }
 
 .otp-back:hover {
@@ -124,15 +121,6 @@
   }
 }
 
-@media (any-pointer: coarse) {
-  .btn-text,
-  .otp-back {
-    min-height: 2.75rem;
-    display: inline-flex;
-    align-items: center;
-  }
-}
-
 @media (min-width: 30rem) {
   .otp-inputs {
     gap: 0.5rem;
@@ -140,11 +128,5 @@
 
   .otp-box {
     font-size: 1.375rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .otp-box:focus {
-    transform: none;
   }
 }
