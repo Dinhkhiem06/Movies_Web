@@ -1,14 +1,15 @@
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-body{
-     font-family: "Cairo", sans-serif;
+
+body {
+    font-family: "Cairo", sans-serif;
 }
 
 /* class dung chung */
-.clear{
+.clear {
     content: "";
     display: block;
     clear: both;
@@ -17,6 +18,7 @@ body{
 img {
     max-width: 100%;
 }
+
 .main-color {
     color: #1f83ed;
 }
@@ -24,12 +26,15 @@ img {
 .font_size20 {
     font-size: 20px;
 }
+
 .text-white {
     color: #fff;
 }
-.main-backround-color{
+
+.main-backround-color {
     background-color: #181616;
 }
+
 /* class dung chung */
 /* button */
 .btns-left-right {
@@ -41,19 +46,23 @@ img {
     display: flex;
     justify-content: space-between;
 }
-.btn-left, .btn-right{
+
+.btn-left,
+.btn-right {
     color: #fff;
     font-size: 30px;
     opacity: 0.6;
 }
 
-.btn-left:hover, .btn-right:hover{
+.btn-left:hover,
+.btn-right:hover {
     color: #1f83ed;
     cursor: pointer;
     opacity: 1;
     transform: scale(1.2);
 }
 /* button */
+
 .header_main {
     background-color: #000;
     height: 60px;
@@ -63,29 +72,33 @@ img {
     position: fixed;
     z-index: 10;
 }
+
 .movie_icon {
     float: left;
 }
-.movies-icon-main{
+
+.movies-icon-main {
     display: inline-block;
     font-size: 30px;
     color: #1f83ed;
 }
-.container_header{
+
+.container_header {
     overflow: hidden;
 }
 
-.nav_header{
+.nav_header {
     text-transform: uppercase;
     float: right;
 }
-.nav_menu{
+
+.nav_menu {
     line-height: 60px;
     text-decoration: none;
     color: #fff;
     font-weight: 700;
     /* do nav menu là có thẻ a là inline nên phải set thêm block de element thay đổi size */
-    display: inline-block; 
+    display: inline-block;
     transform: translateY(-0px);
     transition: 0.2s ease-in-out;
 }
@@ -99,7 +112,8 @@ img {
 .nav_menu_btn {
     text-decoration: none;
     font-weight: 700;
-    position: relative;        /* cần thiết để ::before định vị được */
+    position: relative;
+    /* cần thiết để ::before định vị được */
     padding: 11px 20px
 }
 
@@ -108,36 +122,42 @@ img {
     position: absolute;
     top: 0;
     left: 0;
-    width: 50%;                /* ban đầu chiếm 1 nửa */
+    width: 50%;
+    /* ban đầu chiếm 1 nửa */
     height: 100%;
     background-color: #1f83ed;
     transition: 0.3s ease-in-out;
 }
 
 .nav_menu_btn:hover::before {
-    width: 100%;               /* hover thì mở rộng đầy nút */
+    width: 100%;
+    /* hover thì mở rộng đầy nút */
 }
 
 .nav_menu_btn span {
     position: relative;
-    z-index: 1;                /* chữ nằm trên lớp màu xanh */
+    z-index: 1;
+    /* chữ nằm trên lớp màu xanh */
 }
+
 .movie_icon {
     font-size: 23px;
     line-height: 60px;
-    
+
 }
-.movie_icon a{
+
+.movie_icon a {
     text-decoration: none;
 }
 
 .logo_movies {
     color: #1f83ed
-
 }
+
 .fa-photo-film {
     font-size: 30px;
 }
+
 .nav_header {
     text-transform: uppercase;
     float: right;
@@ -145,6 +165,7 @@ img {
     align-items: center;
     gap: 30px
 }
+
 .text_movies {
     text-decoration: none;
     font-size: 32px;
@@ -155,6 +176,7 @@ img {
     margin-left: 45px;
     margin-right: 45px;
 }
+
 /* Thanh tìm kiếm (Search Box) */
 .search-box {
     position: relative;
@@ -167,22 +189,22 @@ img {
 .search-box input {
     width: 100%;
     height: 100%;
-    background-color: #181616; 
+    background-color: #181616;
     border: 1px solid #333;
-    border-radius: 20px; 
+    border-radius: 20px;
     padding: 0 40px 0 15px;
     color: #fff;
     font-size: 14px;
     outline: none;
     transition: 0.3s ease;
 }
-
-/* Hiệu ứng đổi màu viền khi click vào ô search */
+/*  nổi lên khi focus vào input search */
 .search-box input:focus {
-    border-color: #1f83ed; /* Màu xanh chủ đạo của Flix */
+    border-color: #1f83ed;
+    
 }
 
-/* Icon kính lúp định vị phía bên phải */
+/* icon kính lúp */
 .search-box .search-icon {
     position: absolute;
     right: 15px;
@@ -192,25 +214,27 @@ img {
     transition: 0.3 ease;
 }
 
-.search-box input:focus + .search-icon {
-    color: #1f83ed; /* Phát sáng icon khi focus vào input */
+.search-box input:focus+.search-icon {
+    color: #1f83ed;
 }
+
 /* hero-section */
 
 .hero-section {
     width: 100%;
-    height: 700px; 
+    height: 700px;
     display: flex;
     overflow: hidden;
     margin-top: 60px;
     overflow: hidden;
     position: relative;
 }
+
 .hero-slide-item {
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 700px; 
+    height: 700px;
     flex-shrink: 0;
 }
 
@@ -219,7 +243,8 @@ img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center top; /* Giữ khung hình lấy từ đỉnh đầu nhân vật xuống */
+    object-position: center top;
+    /* Giữ khung hình lấy từ đỉnh đầu nhân vật xuống */
 }
 
 .overlay {
@@ -241,8 +266,10 @@ img {
     height: 100%;
     z-index: 2;
     display: flex;
-    align-items: center; /* Căn giữa nội dung theo chiều dọc */
-    padding-left: 45px;  /* Đẩy lề trái bằng lề chuẩn container_header của bạn */
+    align-items: center;
+    /* Căn giữa nội dung theo chiều dọc */
+    padding-left: 45px;
+    /* Đẩy lề trái bằng lề chuẩn container_header của bạn */
 }
 
 
@@ -263,6 +290,7 @@ img {
     color: #fff;
     font-size: 16px;
     font-weight: 400;
+    margin-bottom: 10px;
 }
 
 .item-content-description {
@@ -285,37 +313,47 @@ img {
 .play-icon {
     margin-right: 17px;
 }
+
 /* tạo hiệu ứng load trang cho từng elenment */
 @keyframes slideDownFade {
     from {
         opacity: 0;
-        transform: translateY(-30px); 
+        transform: translateY(-30px);
     }
+
     to {
         opacity: 1;
-        transform: translateY(0);   
+        transform: translateY(0);
     }
 }
 
 .animate-slide-down {
     animation-name: slideDownFade;
-    animation-duration: 0.8s;        /* Thời gian chuyển động kéo dài 0.8 giây */
-    animation-timing-function: ease; /* Kiểu chuyển động mượt mà */
-    animation-fill-mode: forwards;   /* Giữ nguyên trạng thái hiển thị sau khi chạy xong */
-    opacity: 0;                      /* Ẩn chữ đi trước khi hiệu ứng bắt đầu chạy */
+    animation-duration: 0.8s;
+    /* Thời gian chuyển động kéo dài 0.8 giây */
+    animation-timing-function: ease;
+    /* Kiểu chuyển động mượt mà */
+    animation-fill-mode: forwards;
+    /* Giữ nguyên trạng thái hiển thị sau khi chạy xong */
+    opacity: 0;
+    /* Ẩn chữ đi trước khi hiệu ứng bắt đầu chạy */
 }
+
 /* tạo độ trễ delay cho từng element từ trên xuống dưới*/
 .delay-1 {
-    animation-delay: 0.2s; 
+    animation-delay: 0.2s;
 }
+
 .delay-2 {
-    animation-delay: 0.4s; 
+    animation-delay: 0.4s;
 }
+
 .delay-3 {
-    animation-delay: 0.6s; 
+    animation-delay: 0.6s;
 }
+
 .delay-4 {
-    animation-delay: 0.8s; 
+    animation-delay: 0.8s;
 }
 
 
@@ -324,7 +362,7 @@ img {
 .top-movies-slide {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    
+
 }
 
 
@@ -376,9 +414,9 @@ img {
     align-items: center;
     gap: 5px;
     color: #fff;
-    font-size: 13px; 
+    font-size: 13px;
     font-weight: 400;
-    margin-bottom: 0; 
+    margin-bottom: 0;
 }
 
 /* top-movies-slide */
@@ -398,10 +436,11 @@ img {
 
 .movies-slide {
     display: grid;
-    grid-template-columns: repeat(4,1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin-top: 40px;
 }
+
 .title-section {
     color: #fff;
     font-size: 24px;
@@ -416,10 +455,11 @@ img {
     align-items: center;
     gap: 5px;
     color: #fff;
-    font-size: 13px; 
+    font-size: 13px;
     font-weight: 400;
-    margin-bottom: 0; 
+    margin-bottom: 0;
 }
+
 /* late-movies */
 
 /*premium-series */
@@ -433,20 +473,22 @@ img {
     transition: 0.2s ease-in;
 }
 
-.btn-register{
+.btn-register {
     display: flex;
     justify-content: center;
     margin-top: 40px;
     padding-bottom: 40px;
 }
+
 /*premium-series */
 
 /* best-movies */
-.best-movies .container{
+.best-movies .container {
     padding: 60px 40px 0px;
     display: flex;
     justify-content: center;
 }
+
 .line {
     background-color: #1f83ed;
     width: 100%;
@@ -455,11 +497,11 @@ img {
 /* best-movies */
 
 /* đổi tên class thành .best-movies-banner để không bị ăn js của .hero-slide-item */
-.best-movies-banner { 
+.best-movies-banner {
     position: relative;
     overflow: hidden;
     width: 100%;
-    height: 700px; 
+    height: 700px;
     flex-shrink: 0;
 }
 
@@ -468,6 +510,7 @@ img {
 .flix-pricing {
     padding-bottom: 80px;
 }
+
 .flix-pricing .title-flix-pricing {
     color: #fff;
     display: flex;
@@ -479,11 +522,11 @@ img {
 .register-flix {
     margin-top: 30px;
     display: grid;
-    grid-template-columns: repeat(3,1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 30px;
 }
 
-.register-flix-item{
+.register-flix-item {
     background-color: #221f1f;
     padding: 30px;
     transform: translateY(0px);
@@ -493,18 +536,19 @@ img {
 .register-flix-item:hover {
     transform: translateY(-10px);
     transition: 0.2s ease-in-out;
-    
+
 }
 
 .pricing-box__header {
     margin-top: 40px;
     font-size: 21px;
-    
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
+
 }
+
 .pricing-price {
     font-weight: 700;
 }
@@ -523,12 +567,14 @@ img {
 .disable {
     text-decoration: line-through;
 }
+
 /*flix-pricing */
 
 /* footer */
 .footer {
     background-color: #221f1f;
 }
+
 .footer-container {
     padding: 0px 40px 0px;
     display: grid;
@@ -539,9 +585,10 @@ img {
 .title-flix-footer {
     font-size: 28px;
 }
+
 .footer-content {
     font-size: 14px;
-    padding: 0px 14px ;
+    padding: 0px 14px;
 }
 
 .title-flix-footer {
@@ -549,7 +596,7 @@ img {
 }
 
 .thank-cinema {
-        margin-top: 20px;
+    margin-top: 20px;
 }
 
 .icon-social {
@@ -557,30 +604,34 @@ img {
 
 }
 
-.sub-icon-social{
+.sub-icon-social {
     font-size: 30px;
     color: #fff;
 }
+
 .sub-icon-social:hover {
     color: #1f83ed;
     transition: 0.2s ease-in-out;
 }
 
 .footer-description {
-   margin-top: 10px;
-   
+    margin-top: 10px;
+
 }
+
 .footer-sub__description {
     margin-bottom: 10px;
     transform: translateX(0px);
     transition: 0.2s ease-in-out;
 }
+
 .footer-sub__description:hover {
     transform: translateX(4px);
     transition: 0.2s ease-in-out;
     color: #1f83ed;
     cursor: pointer;
 }
+
 .footer-title {
     padding: 25px 0px 0px;
 }
@@ -590,61 +641,23 @@ img {
     transform: translateX(0px);
     transition: 0.2s ease-in-out;
 }
+
 .ch-play:hover {
     transform: translateX(6px);
     transition: 0.2s ease-in-out;
     cursor: pointer;
 }
+
 .app-store {
     margin-top: 5px;
     transform: translateX(0px);
     transition: 0.2s ease-in-out;
 }
+
 .app-store:hover {
     transform: translateX(6px);
     transition: 0.2s ease-in-out;
     cursor: pointer;
 }
+
 /* footer */
-
-/* Thanh tìm kiếm (Search Box) */
-.search-box {
-    position: relative;
-    width: 250px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-}
-
-.search-box input {
-    width: 100%;
-    height: 100%;
-    background-color: #181616; /* Đồng bộ với màu nền tối của web */
-    border: 1px solid #333;
-    border-radius: 20px; /* Bo tròn góc mềm mại */
-    padding: 0 40px 0 15px;
-    color: #fff;
-    font-family: "Cairo", sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-/* Hiệu ứng đổi màu viền khi click vào ô search */
-.search-box input:focus {
-    border-color: #1f83ed; /* Màu xanh chủ đạo của Flix */
-}
-
-/* Icon kính lúp định vị phía bên phải */
-.search-box .search-icon {
-    position: absolute;
-    right: 15px;
-    color: #aaa;
-    font-size: 18px;
-    cursor: pointer;
-    transition: 0.3 ease;
-}
-
-.search-box input:focus + .search-icon {
-    color: #1f83ed; /* Phát sáng icon khi focus vào input */
-}

@@ -1,4 +1,3 @@
-// 1. Chọn các phần tử HTML cần thiết
 const heroSection = document.querySelector('.hero-section');
 const slides = document.querySelectorAll('.hero-slide-item');
 const btnLeft = document.querySelector('.btn-left');
@@ -60,7 +59,7 @@ btnLeft.addEventListener('click', () => {
     updateSlider(); // Cập nhật lại giao diện slider
 });
 
-// Đợi giao diện HTML tải xong
+// đợi giao diện HTML tải xong
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.querySelector('.sub-nav__menu');
     const navHeader = document.querySelector('.nav_header');
