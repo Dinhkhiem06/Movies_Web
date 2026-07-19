@@ -1,573 +1,471 @@
-(() => {
-  'use strict';
+'use strict';
 
-  // ===== REGISTRATION AND OTP PAGE CONFIGURATION =====
-  // DEMO_OTP is a fixed code that replaces a real SMS flow.
-  // DEMO_ACCOUNTS contains accounts for quick login testing.
-  const STORAGE_KEY = 'cinewave_accounts';
-  const DEMO_OTP = '123456';
-  const OTP_DURATION = 120;
-  const PHONE_LENGTH = 10;
-  const OTP_LENGTH = 6;
-  const PASSWORD_MIN_LENGTH = 6;
-  const REDIRECT_DELAY = 1500;
-  const DEMO_ACCOUNTS = [
-    {
-      phone: '0901234567',
-      password: '123456',
-    },
-  ];
+// Values used for the demo registration flow.
+const STORAGE_KEY = 'flix_accounts';
+const DEMO_PHONE = '0901234567';
+const DEMO_OTP = '123456';
+const OTP_TIME = 120;
 
-  /**
-   * TEMPORARY REGISTRATION STATE.
-   * An account is stored in localStorage only after successful OTP verification,
-   * so the phone number and password are kept here until then.
-   */
-  const state = {
-    phone: null,
-    password: null,
-    timerId: null,
-    expiresAt: null,
-    remaining: OTP_DURATION,
-  };
+// Store the form data until the OTP is confirmed.
+let pendingPhone = '';
+let pendingPassword = '';
+let secondsLeft = OTP_TIME;
+let timerId = null;
 
-  // ===== TWO VIEWS SHARED BY register.html =====
-  // The "register" view contains the initial registration form.
-  // The "otp" view contains the OTP input form.
-  const views = {
-    register: document.getElementById('view-register'),
-    otp: document.getElementById('view-otp'),
-  };
+// The two views on the Register page.
+const registerView = document.getElementById('view-register');
+const otpView = document.getElementById('view-otp');
 
-  // ----- Registration form DOM elements -----
-  const registerForm = document.getElementById('register-form');
-  const registerPhoneInput = document.getElementById('register-phone');
-  const registerPhoneError = document.getElementById('register-phone-error');
-  const registerPasswordInput = document.getElementById('register-password');
-  const registerPasswordError = document.getElementById('register-password-error');
-  const registerConfirmInput = document.getElementById('register-confirm-password');
-  const registerConfirmError = document.getElementById('register-confirm-password-error');
-  const registerNotice = document.getElementById('register-notice');
+// Registration form elements.
+const registerForm = document.getElementById('register-form');
+const phoneInput = document.getElementById('register-phone');
+const passwordInput = document.getElementById('register-password');
+const confirmInput = document.getElementById('register-confirm-password');
+const phoneError = document.getElementById('register-phone-error');
+const passwordError = document.getElementById('register-password-error');
+const confirmError = document.getElementById('register-confirm-password-error');
+const registerNotice = document.getElementById('register-notice');
 
-  // ----- OTP form DOM elements -----
-  const otpPhoneDisplay = document.getElementById('otp-phone-display');
-  const otpNotice = document.getElementById('otp-notice');
-  const otpInputsWrap = document.getElementById('otp-inputs');
-  const otpBoxes = Array.from(otpInputsWrap.querySelectorAll('.otp-box')); // List of six OTP inputs
-  const otpGroupError = document.getElementById('otp-group-error');
-  const otpTimerWrap = document.getElementById('otp-timer-wrap');
-  const otpTimerEl = document.getElementById('otp-timer');
-  const otpResendBtn = document.getElementById('otp-resend-btn');
-  const otpConfirmBtn = document.getElementById('otp-confirm-btn');
-  const otpBackBtn = document.getElementById('otp-back');
-  const otpForm = document.getElementById('otp-form');
+// OTP view elements.
+const otpForm = document.getElementById('otp-form');
+const otpBoxes = document.querySelectorAll('.otp-box');
+const otpError = document.getElementById('otp-group-error');
+const otpNotice = document.getElementById('otp-notice');
+const otpPhoneDisplay = document.getElementById('otp-phone-display');
+const otpTimer = document.getElementById('otp-timer');
+const otpTimerWrap = document.getElementById('otp-timer-wrap');
+const otpResendButton = document.getElementById('otp-resend-btn');
+const otpConfirmButton = document.getElementById('otp-confirm-btn');
+const otpBackButton = document.getElementById('otp-back');
 
-  /**
-   * Read accounts from localStorage and merge them with the demo account.
-   * Remove duplicate phone numbers so saved data cannot override the demo account.
-   */
-  function getAccounts() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [...DEMO_ACCOUNTS];
+// Read registered accounts.
+function getSavedAccounts() {
+  try {
+    const accounts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [...DEMO_ACCOUNTS];
-
-      const savedAccounts = parsed
-        .filter((account) => {
-          return account && typeof account.phone === 'string' && typeof account.password === 'string';
-        })
-        .filter((account) => {
-          return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
-        });
-
-      return [...DEMO_ACCOUNTS, ...savedAccounts];
-    } catch {
-      // Invalid data: keep the demo account available
-      return [...DEMO_ACCOUNTS];
+    if (Array.isArray(accounts)) {
+      return accounts;
     }
+  } catch (error) {
+    // Return an empty list when the saved data is invalid.
   }
 
-  // Find an account by phone number to detect duplicate registrations
-  function findAccount(phone) {
-    return getAccounts().find((account) => account.phone === phone) || null;
-  }
+  return [];
+}
 
-  /**
-   * Save a new account after successful OTP verification.
-   * localStorage acts as a mock database for this static website.
-   */
-  function saveAccount(phone, password) {
-    try {
-      const accounts = getAccounts();
-
-      if (accounts.some((account) => account.phone === phone)) {
-        return { ok: false, reason: 'duplicate' };
-      }
-
-      const savedAccounts = accounts.filter((account) => {
-        return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
-      });
-
-      savedAccounts.push({ phone, password });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAccounts));
-      return { ok: true };
-    } catch {
-      return { ok: false, reason: 'storage' };
-    }
-  }
-
-  // Validate the phone number when the registration form is submitted
-  function validatePhone(rawValue) {
-    const value = rawValue.trim();
-
-    if (!value) return { valid: false, message: 'Vui lòng nhập số điện thoại.' };
-    if (!/^\d+$/.test(value)) return { valid: false, message: 'Số điện thoại chỉ được chứa chữ số.' };
-    if (value.length !== PHONE_LENGTH) {
-      return { valid: false, message: `Số điện thoại phải gồm đúng ${PHONE_LENGTH} chữ số.` };
-    }
-
-    return { valid: true, value };
-  }
-
-  // Validate the password without silently changing leading or trailing spaces.
-  function validatePassword(rawValue) {
-    const value = rawValue;
-
-    if (!value.trim()) return { valid: false, message: 'Vui lòng nhập mật khẩu.' };
-    if (value.length < PASSWORD_MIN_LENGTH) {
-      return { valid: false, message: `Mật khẩu phải có ít nhất ${PASSWORD_MIN_LENGTH} ký tự.` };
-    }
-
-    return { valid: true, value };
-  }
-
-  // ===== ERROR AND NOTICE DISPLAY HELPERS =====
-
-  // Show or clear the error for a specific input
-  function setFieldError(input, errorEl, message) {
-    const hasError = Boolean(message);
-    input.classList.toggle('input-error', hasError);
-    input.setAttribute('aria-invalid', String(hasError));
-    errorEl.classList.toggle('show', hasError);
-    errorEl.textContent = message;
-  }
-
-  // Show a shared error or success notice on the form
-  function showNotice(el, message, type = 'error') {
-    el.hidden = false;
-    el.textContent = message;
-    el.classList.toggle('success', type === 'success');
-    el.classList.add('show');
-  }
-
-  // Hide the shared notice and restore its initial state
-  function hideNotice(el) {
-    el.classList.remove('show', 'success');
-    el.textContent = '';
-    el.hidden = true;
-  }
-
-  // Switch between the registration and OTP views
-  function showView(name) {
-    Object.entries(views).forEach(([key, el]) => {
-      const isTarget = key === name;
-      el.hidden = !isTarget;
-      el.classList.toggle('is-active', isTarget);
-    });
-  }
-
-  // ===== LIVE VALIDATION =====
-
-  // Report a phone error as soon as a non-digit character is entered
-  function updatePhoneLiveState() {
-    const raw = registerPhoneInput.value;
-    const isDigitsOnly = /^\d*$/.test(raw);
-
-    if (!isDigitsOnly) {
-      registerPhoneInput.classList.remove('input-success');
-      setFieldError(registerPhoneInput, registerPhoneError, 'Số điện thoại chỉ được chứa chữ số.');
-      return;
-    }
-
-    setFieldError(registerPhoneInput, registerPhoneError, '');
-    // Mark the input as successful when it reaches the required length
-    registerPhoneInput.classList.toggle('input-success', raw.length === PHONE_LENGTH);
-  }
-
-  // Report a password error while its value is shorter than the minimum length
-  function updatePasswordLiveState() {
-    const value = registerPasswordInput.value;
-
-    if (!value.trim()) {
-      registerPasswordInput.classList.remove('input-success');
-      setFieldError(registerPasswordInput, registerPasswordError, '');
-      return;
-    }
-
-    if (value.length < PASSWORD_MIN_LENGTH) {
-      registerPasswordInput.classList.remove('input-success');
-      setFieldError(registerPasswordInput, registerPasswordError, `Mật khẩu phải có ít nhất ${PASSWORD_MIN_LENGTH} ký tự.`);
-      return;
-    }
-
-    setFieldError(registerPasswordInput, registerPasswordError, '');
-    registerPasswordInput.classList.add('input-success');
-  }
-
-  // ===== OTP INPUT HELPERS =====
-
-  function setOtpValidation(message = '', invalidBoxes = []) {
-    const invalidSet = new Set(invalidBoxes);
-
-    otpGroupError.textContent = message;
-    otpGroupError.classList.toggle('show', Boolean(message));
-
-    otpBoxes.forEach((box) => {
-      const isInvalid = invalidSet.has(box);
-      box.classList.toggle('error', isInvalid);
-      box.setAttribute('aria-invalid', String(isInvalid));
-    });
-  }
-
-  function refreshOtpValidationAfterEdit(hadValidationError) {
-    const isExpired = state.expiresAt === null
-      ? state.remaining <= 0
-      : getRemainingSeconds() <= 0;
-
-    if (isExpired) {
-      setOtpValidation('', otpBoxes);
-      return false;
-    }
-
-    if (!hadValidationError) {
-      setOtpValidation();
-      return true;
-    }
-
-    const emptyBoxes = otpBoxes.filter((box) => !box.value);
-    const message = emptyBoxes.length
-      ? `Vui lòng nhập đầy đủ ${OTP_LENGTH} chữ số OTP.`
-      : '';
-    setOtpValidation(message, emptyBoxes);
+function findAccount(phone) {
+  if (phone === DEMO_PHONE) {
     return true;
   }
 
-  // Reset all OTP inputs when switching views, resending the code, and so on
-  function clearOtpBoxes() {
-    otpBoxes.forEach((box) => {
-      box.value = '';
-      box.classList.remove('filled');
-    });
+  const accounts = getSavedAccounts();
 
-    setOtpValidation();
+  for (let i = 0; i < accounts.length; i += 1) {
+    if (accounts[i] && accounts[i].phone === phone) {
+      return true;
+    }
   }
 
-  // Distribute an autofilled or pasted code across the remaining OTP boxes.
-  function distributeOtpDigits(rawValue, startIndex = 0) {
-    const availableLength = OTP_LENGTH - startIndex;
-    const digits = rawValue.replace(/\D/g, '').slice(0, availableLength).split('');
-    if (!digits.length) return;
+  return false;
+}
 
-    digits.forEach((digit, offset) => {
-      const box = otpBoxes[startIndex + offset];
-      box.value = digit;
-      box.classList.add('filled');
-      box.setAttribute('aria-invalid', 'false');
-    });
-
-    const firstEmptyIndex = startIndex + digits.length;
-    const focusIndex = firstEmptyIndex < OTP_LENGTH ? firstEmptyIndex : OTP_LENGTH - 1;
-    otpBoxes[focusIndex].focus();
+// Possible results: success, duplicate, or error.
+function saveAccount(phone, password) {
+  if (findAccount(phone)) {
+    return 'duplicate';
   }
 
-  // Combine the six input values into one complete OTP string
-  function getOtpValue() {
-    return otpBoxes.map((box) => box.value).join('');
+  try {
+    const accounts = getSavedAccounts();
+    accounts.push({ phone: phone, password: password });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+    return 'success';
+  } catch (error) {
+    return 'error';
+  }
+}
+
+function showFieldError(input, errorElement, message) {
+  input.classList.remove('input-success');
+  input.classList.add('input-error');
+  input.setAttribute('aria-invalid', 'true');
+  errorElement.textContent = message;
+  errorElement.classList.add('show');
+}
+
+function clearFieldError(input, errorElement) {
+  input.classList.remove('input-error');
+  input.setAttribute('aria-invalid', 'false');
+  errorElement.textContent = '';
+  errorElement.classList.remove('show');
+}
+
+function showNotice(element, message, isSuccess) {
+  element.hidden = false;
+  element.textContent = message;
+  element.classList.add('show');
+
+  if (isSuccess) {
+    element.classList.add('success');
+  } else {
+    element.classList.remove('success');
+  }
+}
+
+function hideNotice(element) {
+  element.hidden = true;
+  element.textContent = '';
+  element.classList.remove('show', 'success');
+}
+
+function showRegisterView() {
+  registerView.hidden = false;
+  registerView.classList.add('is-active');
+  otpView.hidden = true;
+  otpView.classList.remove('is-active');
+}
+
+function showOtpView() {
+  registerView.hidden = true;
+  registerView.classList.remove('is-active');
+  otpView.hidden = false;
+  otpView.classList.add('is-active');
+}
+
+// Show or hide the two password fields.
+const passwordButtons = document.querySelectorAll('.toggle-visibility');
+
+for (let i = 0; i < passwordButtons.length; i += 1) {
+  passwordButtons[i].addEventListener('click', function () {
+    const inputId = this.getAttribute('data-target');
+    const input = document.getElementById(inputId);
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      this.textContent = 'Hide';
+      this.setAttribute('aria-label', 'Hide password');
+    } else {
+      input.type = 'password';
+      this.textContent = 'Show';
+      this.setAttribute('aria-label', 'Show password');
+    }
+  });
+}
+
+// Perform simple validation while the user types.
+phoneInput.addEventListener('input', function () {
+  hideNotice(registerNotice);
+  clearFieldError(phoneInput, phoneError);
+  phoneInput.classList.remove('input-success');
+
+  if (phoneInput.value !== '' && !/^\d+$/.test(phoneInput.value)) {
+    showFieldError(phoneInput, phoneError, 'Phone number can only contain digits.');
+  } else if (phoneInput.value.length === 10) {
+    phoneInput.classList.add('input-success');
+  }
+});
+
+passwordInput.addEventListener('input', function () {
+  clearFieldError(passwordInput, passwordError);
+  passwordInput.classList.remove('input-success');
+
+  if (passwordInput.value !== '' && passwordInput.value.length < 6) {
+    showFieldError(passwordInput, passwordError, 'Password must contain at least 6 characters.');
+  } else if (passwordInput.value.length >= 6) {
+    passwordInput.classList.add('input-success');
+  }
+});
+
+confirmInput.addEventListener('input', function () {
+  clearFieldError(confirmInput, confirmError);
+});
+
+// Validate the registration form.
+registerForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+  hideNotice(registerNotice);
+
+  const phone = phoneInput.value.trim();
+  const password = passwordInput.value;
+  const confirmPassword = confirmInput.value;
+
+  if (phone === '') {
+    showFieldError(phoneInput, phoneError, 'Please enter your phone number.');
+    phoneInput.focus();
+    return;
   }
 
-  // Format a number of seconds as mm:ss for the countdown display
-  function formatTime(totalSeconds) {
-    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
+  if (!/^\d+$/.test(phone)) {
+    showFieldError(phoneInput, phoneError, 'Phone number can only contain digits.');
+    phoneInput.focus();
+    return;
   }
 
-  function getRemainingSeconds() {
-    if (state.expiresAt === null) return 0;
-    return Math.max(0, Math.ceil((state.expiresAt - Date.now()) / 1000));
+  if (phone.length !== 10) {
+    showFieldError(phoneInput, phoneError, 'Phone number must contain exactly 10 digits.');
+    phoneInput.focus();
+    return;
   }
 
-  // Stop the previous timer before creating another interval
-  function stopTimer() {
-    if (state.timerId !== null) {
-      clearInterval(state.timerId);
-      state.timerId = null;
+  clearFieldError(phoneInput, phoneError);
+  phoneInput.classList.add('input-success');
+
+  if (findAccount(phone)) {
+    showFieldError(phoneInput, phoneError, 'This phone number is already registered.');
+    phoneInput.focus();
+    return;
+  }
+
+  if (password.trim() === '') {
+    showFieldError(passwordInput, passwordError, 'Please enter your password.');
+    passwordInput.focus();
+    return;
+  }
+
+  if (password.length < 6) {
+    showFieldError(passwordInput, passwordError, 'Password must contain at least 6 characters.');
+    passwordInput.focus();
+    return;
+  }
+
+  clearFieldError(passwordInput, passwordError);
+  passwordInput.classList.add('input-success');
+
+  if (confirmPassword !== password) {
+    showFieldError(confirmInput, confirmError, 'Passwords do not match.');
+    confirmInput.focus();
+    return;
+  }
+
+  clearFieldError(confirmInput, confirmError);
+
+  pendingPhone = phone;
+  pendingPassword = password;
+  otpPhoneDisplay.textContent = phone;
+  otpConfirmButton.disabled = false;
+
+  clearOtpBoxes();
+  hideNotice(otpNotice);
+  showOtpView();
+  startTimer();
+  otpBoxes[0].focus();
+});
+
+function clearOtpError() {
+  otpError.textContent = '';
+  otpError.classList.remove('show');
+
+  for (let i = 0; i < otpBoxes.length; i += 1) {
+    otpBoxes[i].classList.remove('error');
+    otpBoxes[i].setAttribute('aria-invalid', 'false');
+  }
+}
+
+function showOtpError(message, markEmptyOnly) {
+  otpError.textContent = message;
+  otpError.classList.add('show');
+
+  for (let i = 0; i < otpBoxes.length; i += 1) {
+    const shouldMark = !markEmptyOnly || otpBoxes[i].value === '';
+
+    if (shouldMark) {
+      otpBoxes[i].classList.add('error');
+      otpBoxes[i].setAttribute('aria-invalid', 'true');
+    }
+  }
+}
+
+function clearOtpBoxes() {
+  for (let i = 0; i < otpBoxes.length; i += 1) {
+    otpBoxes[i].value = '';
+    otpBoxes[i].classList.remove('filled');
+  }
+
+  clearOtpError();
+}
+
+function getOtpCode() {
+  let code = '';
+
+  for (let i = 0; i < otpBoxes.length; i += 1) {
+    code += otpBoxes[i].value;
+  }
+
+  return code;
+}
+
+// Fill the six OTP boxes from one value.
+function fillOtpBoxes(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 6);
+  clearOtpBoxes();
+
+  for (let i = 0; i < digits.length; i += 1) {
+    otpBoxes[i].value = digits[i];
+    otpBoxes[i].classList.add('filled');
+  }
+
+  const nextIndex = Math.min(digits.length, otpBoxes.length - 1);
+  otpBoxes[nextIndex].focus();
+}
+
+for (let i = 0; i < otpBoxes.length; i += 1) {
+  otpBoxes[i].addEventListener('input', function () {
+    const digits = this.value.replace(/\D/g, '');
+
+    if (digits.length > 1) {
+      fillOtpBoxes(digits);
+      return;
     }
 
-    state.expiresAt = null;
-  }
+    this.value = digits.slice(-1);
 
-  function updateTimer() {
-    state.remaining = getRemainingSeconds();
-    otpTimerEl.textContent = formatTime(state.remaining);
+    if (this.value !== '') {
+      this.classList.add('filled');
 
-    if (state.remaining > 0) return;
+      if (i < otpBoxes.length - 1) {
+        otpBoxes[i + 1].focus();
+      }
+    } else {
+      this.classList.remove('filled');
+    }
 
-    stopTimer();
-    state.remaining = 0;
-    otpTimerWrap.style.display = 'none';
-    otpResendBtn.hidden = false;
-    showNotice(otpNotice, 'Mã OTP đã hết hiệu lực. Vui lòng gửi lại mã mới.');
-  }
+    clearOtpError();
 
-  // Count down the OTP validity period.
-  // When it expires, show the resend button and block verification.
-  function startTimer() {
-    stopTimer();
-    state.expiresAt = Date.now() + OTP_DURATION * 1000;
-    state.remaining = OTP_DURATION;
-    otpTimerEl.textContent = formatTime(state.remaining);
-    otpTimerWrap.style.display = 'inline';
-    otpResendBtn.hidden = true;
-    state.timerId = setInterval(updateTimer, 1000);
-  }
-
-  // Open the OTP view and start the countdown after valid registration input
-  function enterOtpView() {
-    otpPhoneDisplay.textContent = state.phone;
-    otpConfirmBtn.disabled = false;
-    hideNotice(otpNotice);
-    clearOtpBoxes();
-    showView('otp');
-    startTimer();
-    otpBoxes[0].focus(); // Focus the first input so the user can start typing immediately
-  }
-
-  // ===== PASSWORD VISIBILITY BUTTONS =====
-  document.querySelectorAll('.toggle-visibility').forEach((button) => {
-    button.addEventListener('click', () => {
-      const targetInput = document.getElementById(button.dataset.target);
-      if (!targetInput) return;
-
-      const isHidden = targetInput.type === 'password';
-      targetInput.type = isHidden ? 'text' : 'password';
-      button.textContent = isHidden ? 'Ẩn' : 'Hiện';
-      button.setAttribute('aria-label', isHidden ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
-    });
+    if (secondsLeft > 0) {
+      hideNotice(otpNotice);
+    }
   });
 
-  // Run live validation as the user types
-  registerPhoneInput.addEventListener('input', updatePhoneLiveState);
-  registerPasswordInput.addEventListener('input', updatePasswordLiveState);
-  registerConfirmInput.addEventListener('input', () => {
-    // Clear the previous error; matching is checked again on submission
-    setFieldError(registerConfirmInput, registerConfirmError, '');
+  otpBoxes[i].addEventListener('keydown', function (event) {
+    if (event.key === 'Backspace' && this.value === '' && i > 0) {
+      otpBoxes[i - 1].value = '';
+      otpBoxes[i - 1].classList.remove('filled');
+      otpBoxes[i - 1].focus();
+    }
   });
 
-  /**
-   * REGISTRATION FLOW:
-   * 1. Validate the phone number, password, and confirmation password.
-   * 2. Reject phone numbers already present in localStorage or the demo account.
-   * 3. Keep the phone number and password in state, then open the OTP view.
-   */
-  registerForm.addEventListener('submit', (event) => {
-    // Prevent the default page reload and handle submission with JavaScript
+  otpBoxes[i].addEventListener('paste', function (event) {
     event.preventDefault();
-    hideNotice(registerNotice);
-
-    // Step 1a: validate the phone number format
-    const phoneResult = validatePhone(registerPhoneInput.value);
-    if (!phoneResult.valid) {
-      setFieldError(registerPhoneInput, registerPhoneError, phoneResult.message);
-      registerPhoneInput.focus();
-      return;
-    }
-    setFieldError(registerPhoneInput, registerPhoneError, '');
-
-    // Step 2: check whether the phone number is already registered
-    if (findAccount(phoneResult.value)) {
-      setFieldError(registerPhoneInput, registerPhoneError, 'Số điện thoại đã được đăng ký.');
-      registerPhoneInput.focus();
-      return;
-    }
-
-    // Step 1b: validate the password
-    const passwordResult = validatePassword(registerPasswordInput.value);
-    if (!passwordResult.valid) {
-      setFieldError(registerPasswordInput, registerPasswordError, passwordResult.message);
-      registerPasswordInput.focus();
-      return;
-    }
-    setFieldError(registerPasswordInput, registerPasswordError, '');
-
-    // Step 1c: confirm that both passwords match
-    if (registerConfirmInput.value !== passwordResult.value) {
-      setFieldError(registerConfirmInput, registerConfirmError, 'Mật khẩu xác nhận không khớp.');
-      registerConfirmInput.focus();
-      return;
-    }
-    setFieldError(registerConfirmInput, registerConfirmError, '');
-
-    // Step 3: store valid input in state and open the OTP step
-    state.phone = phoneResult.value;
-    state.password = passwordResult.value;
-    enterOtpView();
+    const pastedText = event.clipboardData.getData('text');
+    fillOtpBoxes(pastedText);
   });
+}
 
-  // Back button: stop the timer and return to the registration view
-  otpBackBtn.addEventListener('click', () => {
-    stopTimer();
-    hideNotice(otpNotice);
-    showView('register');
-    registerPhoneInput.focus();
-  });
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const minuteText = String(minutes).padStart(2, '0');
+  const secondText = String(seconds).padStart(2, '0');
 
-  /**
-   * MANAGE THE SIX OTP INPUTS:
-   * - Accept digits only.
-   * - Move focus to the next input after a digit is entered.
-   * - Move back when Backspace is pressed in an empty input.
-   * - Distribute a pasted sequence across all inputs.
-   */
-  otpBoxes.forEach((box, index) => {
-    // Handle typing in each input
-    box.addEventListener('input', () => {
-      const hadValidationError = otpGroupError.classList.contains('show')
-        || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
-      const digitsOnly = box.value.replace(/\D/g, ''); // Remove every non-digit character
+  return minuteText + ':' + secondText;
+}
 
-      if (digitsOnly.length > 1) {
-        clearOtpBoxes();
-        distributeOtpDigits(digitsOnly);
-        if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
-        return;
-      }
+function stopTimer() {
+  if (timerId !== null) {
+    clearInterval(timerId);
+    timerId = null;
+  }
+}
 
-      box.value = digitsOnly.slice(-1); // Keep only the last digit entered
-      box.classList.toggle('filled', box.value !== '');
-      if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
+function expireOtp() {
+  stopTimer();
+  secondsLeft = 0;
+  otpTimerWrap.style.display = 'none';
+  otpResendButton.hidden = false;
+  showNotice(otpNotice, 'The OTP has expired. Please request a new code.', false);
+}
 
-      // Move to the next input after the current one receives a value
-      if (box.value && index < otpBoxes.length - 1) {
-        otpBoxes[index + 1].focus();
-      }
-    });
+function startTimer() {
+  stopTimer();
+  secondsLeft = OTP_TIME;
+  otpTimer.textContent = formatTime(secondsLeft);
+  otpTimerWrap.style.display = 'inline';
+  otpResendButton.hidden = true;
 
-    // Move to the previous input when Backspace is pressed on an empty input
-    box.addEventListener('keydown', (event) => {
-      if (event.key === 'Backspace' && !box.value && index > 0) {
-        const hadValidationError = otpGroupError.classList.contains('show')
-          || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
-        otpBoxes[index - 1].focus();
-        otpBoxes[index - 1].value = '';
-        otpBoxes[index - 1].classList.remove('filled');
-        if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
-      }
-    });
+  timerId = setInterval(function () {
+    secondsLeft -= 1;
+    otpTimer.textContent = formatTime(secondsLeft);
 
-    // Handle pasting an entire OTP at once
-    box.addEventListener('paste', (event) => {
-      event.preventDefault(); // Prevent the browser's default paste behavior
-
-      const clipboard = event.clipboardData || window.clipboardData;
-      const pasted = clipboard ? clipboard.getData('text').replace(/\D/g, '') : '';
-      if (!pasted) return;
-
-      const hadValidationError = otpGroupError.classList.contains('show')
-        || otpBoxes.some((otpBox) => otpBox.getAttribute('aria-invalid') === 'true');
-      clearOtpBoxes();
-      distributeOtpDigits(pasted);
-      if (refreshOtpValidationAfterEdit(hadValidationError)) hideNotice(otpNotice);
-    });
-  });
-
-  /**
-   * OTP VERIFICATION FLOW:
-   * 1. Reject an expired OTP.
-   * 2. Require all six digits.
-   * 3. Compare the input with DEMO_OTP.
-   * 4. Save a valid account to localStorage and return to the login page.
-   */
-  otpForm.addEventListener('submit', (event) => {
-    event.preventDefault(); // Handle verification with JavaScript instead of a default submission
-
-    const value = getOtpValue();
-
-    // Step 1: ensure the OTP is still valid
-    state.remaining = getRemainingSeconds();
-    if (state.remaining <= 0) {
-      stopTimer();
-      state.remaining = 0;
-      showNotice(otpNotice, 'Mã OTP đã hết hiệu lực. Vui lòng gửi lại mã mới.');
-      otpTimerWrap.style.display = 'none';
-      otpResendBtn.hidden = false;
-      setOtpValidation('', otpBoxes);
-      otpBoxes[0].focus();
-      return;
+    if (secondsLeft <= 0) {
+      expireOtp();
     }
+  }, 1000);
+}
 
-    // Step 2: ensure all OTP digits were entered
-    if (value.length < OTP_LENGTH) {
-      const emptyBoxes = otpBoxes.filter((box) => !box.value);
-      setOtpValidation(`Vui lòng nhập đầy đủ ${OTP_LENGTH} chữ số OTP.`, emptyBoxes);
-      emptyBoxes[0].focus();
-      return;
-    }
+otpBackButton.addEventListener('click', function () {
+  stopTimer();
+  hideNotice(otpNotice);
+  showRegisterView();
+  phoneInput.focus();
+});
 
-    // Step 3: compare the entered code with the demo OTP
-    if (value !== DEMO_OTP) {
-      otpBoxes.forEach((box) => {
-        box.value = '';
-        box.classList.remove('filled');
-      });
-      setOtpValidation('Mã OTP không đúng. Vui lòng thử lại.', otpBoxes);
-      otpBoxes[0].focus();
-      return;
-    }
+otpResendButton.addEventListener('click', function () {
+  clearOtpBoxes();
+  showNotice(otpNotice, 'A new OTP was sent to ' + pendingPhone + '.', true);
+  startTimer();
+  otpBoxes[0].focus();
+});
 
-    // Step 4: save the verified account and redirect to the login page
-    hideNotice(otpNotice);
-    const saveResult = saveAccount(state.phone, state.password);
+// Validate the OTP and save the account.
+otpForm.addEventListener('submit', function (event) {
+  event.preventDefault();
 
-    if (!saveResult.ok) {
-      if (saveResult.reason === 'duplicate') {
-        stopTimer();
-        showView('register');
-        setFieldError(registerPhoneInput, registerPhoneError, 'Số điện thoại vừa được đăng ký.');
-        registerPhoneInput.focus();
-        return;
-      }
-
-      showNotice(otpNotice, 'Không thể lưu tài khoản trên trình duyệt này. Vui lòng thử lại.');
-      return;
-    }
-
-    stopTimer();
-
-    showNotice(otpNotice, 'Xác thực thành công! Vui lòng đăng nhập lại.', 'success');
-    otpConfirmBtn.disabled = true;
-
-    registerPhoneInput.value = '';
-    registerPasswordInput.value = '';
-    registerConfirmInput.value = '';
-    registerPhoneInput.classList.remove('input-success');
-    registerPasswordInput.classList.remove('input-success');
-    clearOtpBoxes();
-
-    // Keep the status visible long enough to be read before redirecting.
-    setTimeout(() => {
-      window.location.href = '../login/login.html';
-    }, REDIRECT_DELAY);
-  });
-
-  // Simulate resending an OTP by resetting the inputs, notice, and countdown
-  otpResendBtn.addEventListener('click', () => {
-    hideNotice(otpNotice);
-    clearOtpBoxes();
-    showNotice(otpNotice, `Đã gửi lại mã OTP đến ${state.phone}.`, 'success');
-    startTimer();
+  if (secondsLeft <= 0) {
+    expireOtp();
     otpBoxes[0].focus();
-  });
-})();
+    return;
+  }
+
+  const otpCode = getOtpCode();
+
+  if (otpCode.length !== 6) {
+    showOtpError('Please enter all 6 OTP digits.', true);
+
+    for (let i = 0; i < otpBoxes.length; i += 1) {
+      if (otpBoxes[i].value === '') {
+        otpBoxes[i].focus();
+        break;
+      }
+    }
+
+    return;
+  }
+
+  if (otpCode !== DEMO_OTP) {
+    clearOtpBoxes();
+    showOtpError('Incorrect OTP. Please try again.', false);
+    otpBoxes[0].focus();
+    return;
+  }
+
+  hideNotice(otpNotice);
+  const saveResult = saveAccount(pendingPhone, pendingPassword);
+
+  if (saveResult === 'duplicate') {
+    stopTimer();
+    showRegisterView();
+    showFieldError(phoneInput, phoneError, 'This phone number was just registered.');
+    phoneInput.focus();
+    return;
+  }
+
+  if (saveResult === 'error') {
+    showNotice(otpNotice, 'Unable to save the account in this browser. Please try again.', false);
+    return;
+  }
+
+  stopTimer();
+  showNotice(otpNotice, 'Verification successful! Please log in.', true);
+  otpConfirmButton.disabled = true;
+
+  phoneInput.value = '';
+  passwordInput.value = '';
+  confirmInput.value = '';
+  phoneInput.classList.remove('input-success');
+  passwordInput.classList.remove('input-success');
+  clearOtpBoxes();
+
+  setTimeout(function () {
+    window.location.href = '/login_page/login/login.html';
+  }, 500);
+});

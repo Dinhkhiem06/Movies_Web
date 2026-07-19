@@ -1,183 +1,156 @@
-(() => {
-  'use strict';
+'use strict';
 
-  // ===== SHARED LOGIN PAGE CONFIGURATION =====
-  const STORAGE_KEY = 'cinewave_accounts'; // Key used to store the account list in localStorage
-  const PHONE_LENGTH = 10;
-  const REDIRECT_DELAY = 1500;
-  const DEMO_ACCOUNTS = [
-    // Default demo account that is always available for login
-    {
-      phone: '0901234567',
-      password: '123456',
-    },
-  ];
+// Demo account used to test the login feature.
+const STORAGE_KEY = 'flix_accounts';
+const DEMO_ACCOUNT = {
+  phone: '0901234567',
+  password: '123456',
+};
 
-  // ===== GET THE REQUIRED DOM ELEMENTS =====
-  const loginForm = document.getElementById('login-form');
-  const loginPhoneInput = document.getElementById('login-phone');
-  const loginPhoneError = document.getElementById('login-phone-error');
-  const loginPasswordInput = document.getElementById('login-password');
-  const loginPasswordError = document.getElementById('login-password-error');
-  const loginNotice = document.getElementById('login-notice');
-  const loginButton = document.getElementById('login-continue-btn');
+// Get the elements used on the page.
+const loginForm = document.getElementById('login-form');
+const phoneInput = document.getElementById('login-phone');
+const passwordInput = document.getElementById('login-password');
+const phoneError = document.getElementById('login-phone-error');
+const passwordError = document.getElementById('login-password-error');
+const loginNotice = document.getElementById('login-notice');
+const loginButton = document.getElementById('login-continue-btn');
+const passwordButton = document.querySelector('.toggle-visibility');
 
-  /**
-   * Read the account list from localStorage and always include the demo account.
-   * If localStorage is empty or invalid, the demo account remains available.
-   */
-  function getAccounts() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      // No stored data: return only the demo account
-      if (!raw) return [...DEMO_ACCOUNTS];
+// Read registered accounts from localStorage.
+function getAccounts() {
+  let savedAccounts = [];
 
-      const parsed = JSON.parse(raw);
-      // Invalid array data: fall back to the demo account
-      if (!Array.isArray(parsed)) return [...DEMO_ACCOUNTS];
+  try {
+    savedAccounts = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch (error) {
+    savedAccounts = [];
+  }
 
-      // Remove saved accounts that duplicate the demo phone number
-      // to prevent ambiguous logins or data conflicts
-      const savedAccounts = parsed
-        .filter((account) => {
-          return account && typeof account.phone === 'string' && typeof account.password === 'string';
-        })
-        .filter((account) => {
-          return !DEMO_ACCOUNTS.some((demoAccount) => demoAccount.phone === account.phone);
-        });
+  if (!Array.isArray(savedAccounts)) {
+    savedAccounts = [];
+  }
 
-      // Return the demo account and all unique saved accounts
-      return [...DEMO_ACCOUNTS, ...savedAccounts];
-    } catch {
-      // Reading or parsing failed: safely fall back to the demo account
-      return [...DEMO_ACCOUNTS];
+  // Always add the demo account to the beginning of the list.
+  return [DEMO_ACCOUNT].concat(savedAccounts);
+}
+
+// Find an account by phone number.
+function findAccount(phone) {
+  const accounts = getAccounts();
+
+  for (let i = 0; i < accounts.length; i += 1) {
+    if (accounts[i] && accounts[i].phone === phone) {
+      return accounts[i];
     }
   }
 
-  // Find an account by phone number in the combined demo and saved list
-  function findAccount(phone) {
-    return getAccounts().find((account) => account.phone === phone) || null;
+  return null;
+}
+
+function showFieldError(input, errorElement, message) {
+  input.classList.add('input-error');
+  input.setAttribute('aria-invalid', 'true');
+  errorElement.textContent = message;
+  errorElement.classList.add('show');
+}
+
+function clearFieldError(input, errorElement) {
+  input.classList.remove('input-error');
+  input.setAttribute('aria-invalid', 'false');
+  errorElement.textContent = '';
+  errorElement.classList.remove('show');
+}
+
+function showLoginNotice(message, isSuccess) {
+  loginNotice.hidden = false;
+  loginNotice.textContent = message;
+  loginNotice.classList.add('show');
+
+  if (isSuccess) {
+    loginNotice.classList.add('success');
+  } else {
+    loginNotice.classList.remove('success');
+  }
+}
+
+function hideLoginNotice() {
+  loginNotice.hidden = true;
+  loginNotice.textContent = '';
+  loginNotice.classList.remove('show', 'success');
+}
+
+// Show or hide the password.
+passwordButton.addEventListener('click', function () {
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    passwordButton.textContent = 'Hide';
+    passwordButton.setAttribute('aria-label', 'Hide password');
+  } else {
+    passwordInput.type = 'password';
+    passwordButton.textContent = 'Show';
+    passwordButton.setAttribute('aria-label', 'Show password');
+  }
+});
+
+phoneInput.addEventListener('input', function () {
+  clearFieldError(phoneInput, phoneError);
+  hideLoginNotice();
+});
+
+passwordInput.addEventListener('input', function () {
+  clearFieldError(passwordInput, passwordError);
+  hideLoginNotice();
+});
+
+// Validate the form when the user clicks Login.
+loginForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+  hideLoginNotice();
+
+  const phone = phoneInput.value.trim();
+  const password = passwordInput.value;
+
+  if (phone === '') {
+    showFieldError(phoneInput, phoneError, 'Please enter your phone number.');
+    phoneInput.focus();
+    return;
   }
 
-  /**
-   * Validate a phone number:
-   * - A value is required.
-   * - Only digits are allowed.
-   * - The value must match PHONE_LENGTH.
-   */
-  function validatePhone(rawValue) {
-    const value = rawValue.trim();
-
-    if (!value) return { valid: false, message: 'Vui lòng nhập số điện thoại.' };
-    if (!/^\d+$/.test(value)) return { valid: false, message: 'Số điện thoại chỉ được chứa chữ số.' };
-    if (value.length !== PHONE_LENGTH) {
-      return { valid: false, message: `Số điện thoại phải gồm đúng ${PHONE_LENGTH} chữ số.` };
-    }
-
-    return { valid: true, value };
+  if (!/^\d{10}$/.test(phone)) {
+    showFieldError(phoneInput, phoneError, 'Phone number must contain exactly 10 digits.');
+    phoneInput.focus();
+    return;
   }
 
-  function setFieldError(input, errorEl, message) {
-    const hasError = Boolean(message);
-    input.classList.toggle('input-error', hasError);
-    input.setAttribute('aria-invalid', String(hasError));
-    errorEl.classList.toggle('show', hasError);
-    errorEl.textContent = message;
+  clearFieldError(phoneInput, phoneError);
+
+  if (password.trim() === '') {
+    showFieldError(passwordInput, passwordError, 'Please enter your password.');
+    passwordInput.focus();
+    return;
   }
 
-  function showNotice(el, message, type = 'error') {
-    el.hidden = false;
-    el.textContent = message;
-    el.classList.toggle('success', type === 'success');
-    el.classList.add('show');
+  clearFieldError(passwordInput, passwordError);
+
+  const account = findAccount(phone);
+
+  if (account === null) {
+    showFieldError(phoneInput, phoneError, 'This phone number is not registered.');
+    phoneInput.focus();
+    return;
   }
 
-  function hideNotice(el) {
-    el.classList.remove('show', 'success');
-    el.textContent = '';
-    el.hidden = true;
+  if (account.password !== password) {
+    showFieldError(passwordInput, passwordError, 'Incorrect password.');
+    passwordInput.focus();
+    return;
   }
 
-  // ===== HANDLE PASSWORD VISIBILITY BUTTONS =====
-  // Each button uses data-target to identify which input type should be toggled
-  document.querySelectorAll('.toggle-visibility').forEach((button) => {
-    button.addEventListener('click', () => {
-      const targetInput = document.getElementById(button.dataset.target);
-      if (!targetInput) return;
+  showLoginNotice('Login successful! Redirecting...', true);
+  loginButton.disabled = true;
 
-      const isHidden = targetInput.type === 'password';
-      targetInput.type = isHidden ? 'text' : 'password';
-      button.textContent = isHidden ? 'Ẩn' : 'Hiện';
-      button.setAttribute('aria-label', isHidden ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
-    });
-  });
-
-  // Clear the previous error and shared notice when the phone value changes
-  loginPhoneInput.addEventListener('input', () => {
-    setFieldError(loginPhoneInput, loginPhoneError, '');
-    hideNotice(loginNotice);
-  });
-
-  // Clear the previous error and shared notice when the password changes
-  loginPasswordInput.addEventListener('input', () => {
-    setFieldError(loginPasswordInput, loginPasswordError, '');
-    hideNotice(loginNotice);
-  });
-
-  /**
-   * LOGIN FLOW:
-   * 1. Prevent the form's default submission.
-   * 2. Validate the phone number and password.
-   * 3. Find the account in localStorage or the demo account list.
-   * 4. Show a success message and redirect to the home page.
-   */
-  loginForm.addEventListener('submit', (event) => {
-    // Step 1: prevent the browser from reloading the page
-    event.preventDefault();
-    hideNotice(loginNotice);
-
-    // Step 2a: validate the phone number format
-    const phoneResult = validatePhone(loginPhoneInput.value);
-    if (!phoneResult.valid) {
-      setFieldError(loginPhoneInput, loginPhoneError, phoneResult.message);
-      loginPhoneInput.focus();
-      return; // Stop when the phone number is invalid
-    }
-    setFieldError(loginPhoneInput, loginPhoneError, '');
-
-    // Step 2b: ensure a password was entered
-    const password = loginPasswordInput.value;
-    if (!password.trim()) {
-      setFieldError(loginPasswordInput, loginPasswordError, 'Vui lòng nhập mật khẩu.');
-      loginPasswordInput.focus();
-      return;
-    }
-    setFieldError(loginPasswordInput, loginPasswordError, '');
-
-    // Step 3: find the account associated with the entered phone number
-    const account = findAccount(phoneResult.value);
-    if (!account) {
-      setFieldError(loginPhoneInput, loginPhoneError, 'Số điện thoại chưa được đăng ký.');
-      loginPhoneInput.focus();
-      return;
-    }
-
-    // Check whether the entered password matches the account
-    if (account.password !== password) {
-      setFieldError(loginPasswordInput, loginPasswordError, 'Mật khẩu không đúng.');
-      loginPasswordInput.focus();
-      return;
-    }
-
-    // Step 4: show a success message and redirect to the home page
-    showNotice(loginNotice, 'Đăng nhập thành công! Đang chuyển hướng...', 'success');
-    loginButton.disabled = true;
-    loginPhoneInput.value = '';
-    loginPasswordInput.value = '';
-
-    // Keep the status visible long enough to be read before redirecting.
-    setTimeout(() => {
-      window.location.href = '/index.html';
-    }, REDIRECT_DELAY);
-  });
-})();
+  setTimeout(function () {
+    window.location.href = '/index.html';
+  }, 500);
+});
