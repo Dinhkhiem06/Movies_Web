@@ -61,6 +61,7 @@ img {
     opacity: 1;
     transform: scale(1.2);
 }
+
 /* button */
 
 .header_main {
@@ -177,7 +178,7 @@ img {
     margin-right: 45px;
 }
 
-/* Thanh tìm kiếm (Search Box) */
+/* Thanh tìm kiếm  */
 .search-box {
     position: relative;
     width: 250px;
@@ -198,10 +199,11 @@ img {
     outline: none;
     transition: 0.3s ease;
 }
+
 /*  nổi lên khi focus vào input search */
 .search-box input:focus {
     border-color: #1f83ed;
-    
+
 }
 
 /* icon kính lúp */
@@ -217,6 +219,19 @@ img {
 .search-box input:focus+.search-icon {
     color: #1f83ed;
 }
+/* Thanh tìm kiếm  */
+
+/* icon-login-user */
+.user-profile-icon {
+    display: none;
+    cursor: pointer;
+}
+
+.user-icon {
+    font-size: 32px;
+    color: #1f83ed;
+}
+/* icon-login-user */
 
 /* hero-section */
 
@@ -494,6 +509,7 @@ img {
     width: 100%;
     height: 2px;
 }
+
 /* best-movies */
 
 /* đổi tên class thành .best-movies-banner để không bị ăn js của .hero-slide-item */
