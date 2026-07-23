@@ -3,67 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images_movies/movie-logo.png">
     <title>Store</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/responsive.css">
-    <link rel="stylesheet" href="css/grid.css">
-    <link rel="stylesheet" href="font/fontawesome-free-7.2.0-web/fontawesome-free-7.2.0-web/css/all.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    <link rel="stylesheet" href="../font/fontawesome-free-7.2.0-web/fontawesome-free-7.2.0-web/css/all.css">
     <link rel="stylesheet" href="store.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
 </head>
 <body>
+    <!-- Header -->
     <header class="header_main">
-        <img class="auth-header__logo" src="logos/movie-logo.png" alt="CineWave" />
-    </header>
-    <main class="container">
-        <div class="store_item">
-            <div class="discriton">
-                <div class="item_discription">
-                    <h2 class="item_title"> Standard</h2>
-                    <ul>
-                        <li>Access to a wide range of movies and TV shows</li>
-                        <li>Standard video quality (HD)</li>
-                        <li>Limited simultaneous streams (1 device)</li>
-                        <li>Basic customer support</li>
-                    </ul>                    
-                </div>                  
-                <div class="buy_button">
-                    <button class="item_button">GET NOW</button>
-                </div>    
+        <div class="container_header ">
+            <div class="movie_icon">
+                <a href="" class="text-white logo_movies">
+                    <i class="bx bx-movie-play movies-icon-main"></i>
+                </a>
+                <a href="../index.html" class="text_movies text-white">Fl<span class="main-color">i</span>x
+                </a>
             </div>
-            
-            <div class="discriton">
-                <div class="item_discription">
-                    <h2 class="item_title"> Premium</h2>
-                    <ul>
-                        <li>Access to all movies and TV shows, including exclusive content</li>
-                        <li>High-definition video quality (Full HD or 4K)</li>
-                        <li>Multiple simultaneous streams (up to 4 devices)</li>
-                        <li>Priority customer support</li>
-                    </ul>
+
+            <nav class="nav_header">
+                <!-- search-film -->
+                <div class="search-box">
+                    <input type="search" placeholder="Search movies...">
+                    <i class="bx bx-search search-icon"></i>
                 </div>
-                <div class="buy_button">
-                    <button class="item_button">GET NOW</button>
+                <!-- search-film -->
+                <a href="/index.html" class="nav_menu">home</a>
+                <a href="#" class="nav_menu">genre</a>
+                <a href="#" class="nav_menu">movies</a>
+                <a href="#" class="nav_menu">series</a>
+                <a href="#" class="nav_menu">about</a>
+                <a href="login_page/login/login.html" class="nav_menu_btn btn-hover font_size20 text-white">
+                    <span>Sign in</span>
+                </a>
+        
+            </nav>
+
+            <div class="sub-nav__menu">
+                <i class="bx bx-menu"></i>
+            </div>
+        </div>
+    </header>
+    <!-- Header -->
+
+    <main class="container">
+
+        <!-- CHÚ THÍCH: Đã bỏ inline-style, dùng class cart_title_wrapper và badge đếm số riêng -->
+        <h1 class="cart_title">
+            <span id="cart-icon-btn" class="cart_title_wrapper">
+                <i class="fa-solid fa-cart-shopping shopping-card"></i>
+                YOUR SHOPPING CART
+                <span id="cart-count" class="cart-badge">0</span>
+            </span>
+        </h1>
+
+        <div class="cart_container">
+
+            <!-- LEFT -->
+            <div class="cart_list">
+
+                <!-- Item 1 -->
+                <!-- CHÚ THÍCH: Chỉ dùng thuộc tính id="mov-001" -->
+                <div class="cart_item" id="mov-001" data-price="3.99">
+                    <div class="movie_image">
+                        <img src="../images_movies/Premium_movies/croods.jpg" alt="Croods">
+                    </div>
+
+                    <div class="movie_info">
+                        <h2>Croods</h2>
+                        <!-- CHÚ THÍCH: Dùng class movie_code riêng biệt -->
+                        <p class="movie_code">Mã phim: <strong>MOV-001</strong></p>
+
+                        <div class="movie_meta">
+                            <span>
+                                <i class="fa-solid fa-star"></i>
+                                9.8
+                            </span>
+                            <span>120 mins</span>
+                            <span>HD</span>
+                        </div>
+
+                        <div class="movie_tag">
+                            PREMIUM MOVIE
+                        </div>
+                    </div>
+
+                    <div class="movie_price">
+                        <span>$3.99</span>
+                        <!-- CHÚ THÍCH: Dải các nút thao tác tách biệt bằng class riêng -->
+                        <div class="price_actions">
+                            <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="action_separator">|</span>
+                            <i class="fa-regular fa-trash-can remove-btn"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Item 2 -->
+                <!-- CHÚ THÍCH: Chỉ dùng thuộc tính id="mov-002" -->
+                <div class="cart_item" id="mov-002" data-price="3.99">
+                    <div class="movie_image">
+                        <img src="../images_movies/Premium_movies/dragon.jpg" alt="Dragon Ball">
+                    </div>
+
+                    <div class="movie_info">
+                        <h2>Dragon Ball</h2>
+                        <p class="movie_code">Mã phim: <strong>MOV-002</strong></p>
+                        
+                        <div class="movie_meta">
+                            <span>
+                                <i class="fa-solid fa-star"></i>
+                                9.8
+                            </span>
+                            <span>120 mins</span>
+                            <span>HD</span>
+                        </div>
+
+                        <div class="movie_tag">
+                            PREMIUM MOVIE
+                        </div>
+
+                    </div>
+
+                    <div class="movie_price">
+                        <span>$3.99</span>
+                        <div class="price_actions">
+                            <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="action_separator">|</span>
+                            <i class="fa-regular fa-trash-can remove-btn"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Item 3 -->
+                <!-- CHÚ THÍCH: Chỉ dùng thuộc tính id="mov-003" -->
+                <div class="cart_item" id="mov-003" data-price="3.99">
+                    <div class="movie_image">
+                        <img src="../images_movies/Premium_movies/weathering.jpg" alt="Weathering With You">
+                    </div>
+
+                    <div class="movie_info">
+                        <h2>Weathering With You</h2>
+                        <p class="movie_code">Mã phim: <strong>MOV-003</strong></p>
+                        
+                        <div class="movie_meta">
+                            <span>
+                                <i class="fa-solid fa-star"></i>
+                                9.8
+                            </span>
+                            <span>120 mins</span>
+                            <span>HD</span>
+                        </div>
+
+                        <div class="movie_tag">
+                            PREMIUM MOVIE
+                        </div>
+                    </div>
+
+                    <div class="movie_price">
+                        <span>$3.99</span>
+                        <div class="price_actions">
+                            <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="action_separator">|</span>
+                            <i class="fa-regular fa-trash-can remove-btn"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Item 4 -->
+                <!-- CHÚ THÍCH: Chỉ dùng thuộc tính id="mov-004" -->
+                <div class="cart_item" id="mov-004" data-price="3.99">
+                    <div class="movie_image">
+                        <img src="../images_movies/Premium_movies/your-name.jpg" alt="Your Name">
+                    </div>
+
+                    <div class="movie_info">
+                        <h2>Your Name</h2>
+                        <p class="movie_code">Mã phim: <strong>MOV-004</strong></p>
+                        
+                        <div class="movie_meta">
+                            <span>
+                                <i class="fa-solid fa-star"></i>
+                                9.8
+                            </span>
+                            <span>120 mins</span>
+                            <span>HD</span>
+                        </div>
+
+                        <div class="movie_tag">
+                            PREMIUM MOVIE
+                        </div>
+
+                    </div>
+
+                    <div class="movie_price">
+                        <span>$3.99</span>
+                        <div class="price_actions">
+                            <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="action_separator">|</span>
+                            <i class="fa-regular fa-trash-can remove-btn"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Membership -->
+                <!-- CHÚ THÍCH: Chỉ dùng thuộc tính id="vip-001" -->
+                <div class="cart_item" id="vip-001" data-price="35.99">
+                    <div class="movie_image membership">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+
+                    <div class="movie_info">
+                        <h2>VIP Membership Plan</h2>
+                        <p class="movie_code">Mã gói: <strong>VIP-001</strong></p>
+                        <p>
+                            Unlock 4K streaming, No ADS, Full Access
+                        </p>
+                        <div class="movie_tag vip">
+                            1 MONTH SUBSCRIPTION
+                        </div>
+                    </div>
+
+                    <div class="movie_price">
+                        <span>$35.99</span>
+                        <div class="price_actions">
+                            <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+                            <span class="action_separator">|</span>
+                            <i class="fa-regular fa-trash-can remove-btn"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="discriton">
-                <div class="item_discription">
-                    <h2 class="item_title"> Ultimate</h2>
-                    <ul>
-                        <li>Access to all movies and TV shows, including exclusive content</li>
-                        <li>Ultra high-definition video quality (4K or higher)</li>
-                        <li>Unlimited simultaneous streams (multiple devices)</li>
-                        <li>Priority customer support with dedicated assistance</li>
-                    </ul>
+            <!-- RIGHT -->
+            <aside class="order_summary">
+                <h2>ORDER SUMMARY</h2>
+                <div class="summary_item">
+                    <span>Subtotal</span>
+                    <span id="subtotal">$0.00</span>
                 </div>
-                <div class="buy_button">
-                    <button class="item_button">GET NOW</button>
+
+                <div class="summary_item">
+                    <span>Discount (Promo)</span>
+                    <span class="discount" id="discount">$0.00</span>
+                </div>
+
+                <div class="summary_item">
+                    <span>Tax (VAT 10%)</span>
+                    <span id="tax">$3.90</span>
+                </div>
+
+                <div class="promo_code">
+                    <input id="promoInput" type="text" placeholder="Promo code (e.g. FLIX2026)">
+                    <button id="applyBtn">Apply</button>
+                </div>
+
+                <div class="summary_total">
+                    <span>Total Price</span>
+                    <span id="total">$0.00</span>
+                </div>
+
+                <button class="checkout_btn" id="checkoutBtn">
+                    <i class="fa-solid fa-credit-card"></i>
+                    PROCEED TO CHECKOUT
+                </button>
+                <p id="message"></p>
+            </aside>
+        </div>
+
+    </main>
+
+    <!-- CHÚ THÍCH: Popup giỏ hàng hoàn toàn không dùng inline-style -->
+    <div class="cart-modal" id="cart-modal">
+        <div class="cart-content">
+            <div class="cart-modal-header">
+                <h3>Danh Sách Phim Trong Giỏ</h3>
+                <span id="close-cart-btn" class="close-cart-btn">&times;</span>
+            </div>
+            <div id="cart-modal-body" class="cart-modal-body">
+                <!-- Phim đã chọn sẽ hiển thị tại đây bằng JS -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer ">
+        <div class="footer-container text-white">
+            <div class="footer-content">
+                <div class="footer-header">
+                    <i class="bx bx-movie-play movies-icon-main"></i>
+                    <h2 class="title-flix-footer">Fl<span class="main-color">i</span>x</h2>
+                </div>
+                <p class="thank-cinema">Thank you for visiting Movies Web!
+                    We are dedicated to bringing you the best movie-watching experience.
+                    Stay with us and share the love of cinema together</p>
+                <div class="icon-social">
+                    <a href="" class="sub-icon-social"><i class="fa-brands fa-facebook "></i></a>
+                    <a href="" class="sub-icon-social"><i class="fa-brands fa-square-twitter "></i></a>
+                    <a href="" class="sub-icon-social"><i class="fa-brands fa-instagram "></i></a>
+                </div>
+            </div>
+
+            <div class="footer-content">
+                <h3 class="footer-title">Flix</h3>
+                <div class="footer-description">
+                    <p class="footer-sub__description">About us</p>
+                    <p class="footer-sub__description">My profile</p>
+                    <p class="footer-sub__description">Plans</p>
+                    <p class="footer-sub__description">Privacy policy</p>
+                </div>
+
+            </div>
+            <div class="footer-content">
+                <h3 class="footer-title">Help</h3>
+                <div class="footer-description">
+                    <p class="footer-sub__description">Contacts</p>
+                    <p class="footer-sub__description">FAQ</p>
+                    <p class="footer-sub__description">Support center</p>
+                    <p class="footer-sub__description">Report issue</p>
+                </div>
+            </div>
+
+            <div class="footer-content">
+                <h3 class="footer-title">Download app</h3>
+                <div class="download-app">
+                    <img src="/images_movies/google-play.png" alt="" class="ch-play">
+                    <img src="/images_movies/app-store.png" alt="" class="app-store">
                 </div>
             </div>
         </div>
-    </main>
-    <footer>
-
     </footer>
+
+    <script src="store.js"></script>
 </body>
 </html>

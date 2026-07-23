@@ -221,18 +221,6 @@ img {
 }
 /* Thanh tìm kiếm  */
 
-/* icon-login-user */
-.user-profile-icon {
-    display: none;
-    cursor: pointer;
-}
-
-.user-icon {
-    font-size: 32px;
-    color: #1f83ed;
-}
-/* icon-login-user */
-
 /* hero-section */
 
 .hero-section {
