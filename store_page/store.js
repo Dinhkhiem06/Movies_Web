@@ -285,10 +285,7 @@ if (checkoutBtn) {
     });
 }
 
-
-// ==========================================
-// 3. XỬ LÝ MENU RESPONSIVE (MOBILE / TABLET)
-// ==========================================
+//  xử lí nút menu mobile và tablet 
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.querySelector('.sub-nav__menu');
     const navHeader = document.querySelector('.nav_header');
