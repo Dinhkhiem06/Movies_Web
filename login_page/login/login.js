@@ -148,6 +148,9 @@ loginForm.addEventListener('submit', function (event) {
     return;
   }
 
+  localStorage.setItem('flix_is_logged_in', 'true');
+  localStorage.setItem('flix_user_phone', account.phone);
+
   showLoginNotice('Login successful! Redirecting...', true);
   loginButton.disabled = true;
 
