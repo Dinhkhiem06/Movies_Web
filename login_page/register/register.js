@@ -1,3 +1,4 @@
+// Trần Việt Quân - B2410746
 'use strict';
 
 // Values used for the demo registration flow.
