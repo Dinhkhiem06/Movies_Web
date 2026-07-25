@@ -1,7 +1,7 @@
 console.log("JS Loaded");
 
 // ==========================================
-// 1. QUẢN LÝ POPUP GIỎ HÀNG MODAL
+// 1. QUẢN LÝ POPUP GIỎ HÀNG MODAL (THUẦN DOM)
 // ==========================================
 let modalCart = [];
 
@@ -26,7 +26,7 @@ allAddButtons.forEach(function (buttonItem) {
             return;
         }
 
-        // Lấy thông tin phim từ thuộc tính và nội dung HTML
+        // Lấy thông tin phim từ thuộc tính và DOM
         const movieId = itemCard.getAttribute("id");
         
         let movieTitle = "Phim";
@@ -40,7 +40,7 @@ allAddButtons.forEach(function (buttonItem) {
             moviePrice = itemCard.dataset.price;
         }
         
-        // Lấy mã phim chuẩn từ thuộc tính id
+        // Lấy mã phim chuẩn từ id
         let movieCode = "Không xác định";
         if (movieId) {
             movieCode = movieId.toUpperCase();
@@ -53,7 +53,7 @@ allAddButtons.forEach(function (buttonItem) {
             imageSource = imageElement.getAttribute("src");
         }
 
-        // Kiểm tra xem phim này đã có trong danh sách giỏ hàng chưa
+        // Kiểm tra xem phim đã có trong giỏ hàng chưa
         const existingItem = modalCart.find(function (item) {
             return item.id === movieId;
         });
@@ -70,18 +70,16 @@ allAddButtons.forEach(function (buttonItem) {
             });
         }
 
-        // Cập nhật giao diện giỏ hàng và đếm số lượng
+        // Cập nhật giao diện giỏ hàng Modal bằng DOM
         updateModalCartUI();
         
-        // Hiển thị thông báo dưới giao diện
+        // Thông báo
         successMessage('Đã thêm "' + movieTitle + '" vào giỏ hàng!');
-
-        // Hiển thị hộp thoại alert thông báo
         alert('Đã thêm sản phẩm có mã [' + movieCode + '] vào giỏ hàng!');
     });
 });
 
-// Hàm vẽ lại danh sách phim hoàn toàn bằng thao tác DOM
+// Hàm vẽ lại danh sách phim bằng DOM
 function updateModalCartUI() {
     // Tính tổng số lượng phim trong giỏ
     const totalItems = modalCart.reduce(function (sum, item) {
@@ -96,12 +94,12 @@ function updateModalCartUI() {
         return;
     }
 
-    // Xóa toàn bộ phần tử con cũ trong phần thân giỏ hàng
+    // Xóa sạch các thẻ con cũ trong modal body bằng DOM method (không sài innerHTML)
     while (cartModalBody.firstChild) {
         cartModalBody.removeChild(cartModalBody.firstChild);
     }
 
-    // Nếu giỏ hàng đang trống
+    // Nếu giỏ hàng trống
     if (modalCart.length === 0) {
         const emptyMessageElement = document.createElement("p");
         emptyMessageElement.className = "modal-empty-msg";
@@ -110,17 +108,15 @@ function updateModalCartUI() {
         return;
     }
 
-    // Duyệt qua từng phần tử phim để tạo cấu trúc DOM
+    // Tạo lại các element cho từng item bằng DOM
     modalCart.forEach(function (item) {
-        // Khối chứa toàn bộ một hàng sản phẩm
         const itemRow = document.createElement("div");
         itemRow.className = "modal-cart-item";
 
-        // Khối bên trái chứa hình ảnh và tiêu đề
         const leftBox = document.createElement("div");
         leftBox.className = "modal-item-left";
 
-        // Tạo phần hình ảnh hoặc biểu tượng VIP
+        // Thêm hình ảnh hoặc icon VIP
         if (item.img) {
             const imageNode = document.createElement("img");
             imageNode.src = item.img;
@@ -136,7 +132,7 @@ function updateModalCartUI() {
             leftBox.appendChild(vipBox);
         }
 
-        // Khối chứa các thông tin văn bản
+        // Khối thông tin phim
         const infoBox = document.createElement("div");
 
         const titleElement = document.createElement("h4");
@@ -164,7 +160,7 @@ function updateModalCartUI() {
         infoBox.appendChild(priceElement);
         leftBox.appendChild(infoBox);
 
-        // Nút Xóa sản phẩm
+        // Nút Xóa item trong Modal
         const deleteButton = document.createElement("button");
         deleteButton.className = "modal-delete-btn";
 
@@ -172,19 +168,17 @@ function updateModalCartUI() {
         trashIcon.className = "fa-regular fa-trash-can";
         deleteButton.appendChild(trashIcon);
 
-        // Bắt sự kiện khi bấm nút xóa
         deleteButton.addEventListener("click", function () {
             removeFromModalCart(item.id);
         });
 
-        // Thêm tất cả vào phần tử cha
         itemRow.appendChild(leftBox);
         itemRow.appendChild(deleteButton);
         cartModalBody.appendChild(itemRow);
     });
 }
 
-// Hàm xóa sản phẩm khỏi mảng dữ liệu giỏ hàng
+// Hàm xóa item khỏi giỏ
 function removeFromModalCart(id) {
     modalCart = modalCart.filter(function (item) {
         return item.id !== id;
@@ -192,7 +186,7 @@ function removeFromModalCart(id) {
     updateModalCartUI();
 }
 
-// Bật / Tắt cửa sổ Modal giỏ hàng
+// Bật / Tắt Modal giỏ hàng
 if (cartIconBtn) {
     cartIconBtn.addEventListener("click", function () {
         if (cartModal) {
@@ -274,7 +268,7 @@ function updatePrice() {
     }
 }
 
-// Chọn card ngoài giao diện chính
+// Chọn card ngoài danh sách
 cartItems.forEach(function (item) {
     item.addEventListener("click", function () {
         item.classList.toggle("selected");
@@ -282,20 +276,11 @@ cartItems.forEach(function (item) {
     });
 });
 
-// Xóa phim ngoài danh sách chính
-const removeButtons = document.querySelectorAll(".price_actions .remove-btn");
-removeButtons.forEach(function (icon) {
-    icon.addEventListener("click", function (event) {
+// Ngăn nút DETAIL kích hoạt sự kiện chọn thẻ
+const detailLinks = document.querySelectorAll(".detail-link");
+detailLinks.forEach(function (linkItem) {
+    linkItem.addEventListener("click", function (event) {
         event.stopPropagation();
-
-        const itemCard = icon.closest(".cart_item");
-        if (itemCard) {
-            const movieId = itemCard.getAttribute("id");
-            itemCard.remove();
-            removeFromModalCart(movieId);
-            successMessage("Movie removed.");
-            updatePrice();
-        }
     });
 });
 
@@ -331,7 +316,7 @@ if (checkoutBtn) {
     });
 }
 
-// Xử lý nút menu giao diện di động và máy tính bảng
+// Responsive Nav Menu
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.querySelector('.sub-nav__menu');
     const navHeader = document.querySelector('.nav_header');
