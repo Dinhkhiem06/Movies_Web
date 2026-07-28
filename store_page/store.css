@@ -574,3 +574,66 @@ body {
     background-color: #1665c1;
     transform: translateY(-2px);
 }
+
+/* nút quay lại trang chính */
+.back-main a{
+  color: #1f83ed;
+}
+.back-main{
+  margin-bottom: 20px;
+  transform: translateY(-0px);
+  transition: 0.2s ease-in-out;
+}
+
+.back-main:hover {
+  transform: translateY(-4px);
+  transition: 0.2s ease-in-out;
+}
+
+.back-main a {
+  color: #1f83ed;
+  text-decoration: none;
+}
+/* nút quay lại trang chính */
+
+/* --- FOOTER CỦA MODAL GIỎ HÀNG --- */
+.cart-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid #333333;
+    padding-top: 15px;
+    margin-top: 10px;
+}
+
+.modal-clear-btn {
+    background: #ff4444;
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.modal-clear-btn:hover {
+    background: #cc0000;
+}
+
+.modal-checkout-btn {
+    background: #1f83ed;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    transition: #cc0000 0.2s ease;
+}
+
+.modal-checkout-btn:hover {
+    background: #1665c1;
+}
