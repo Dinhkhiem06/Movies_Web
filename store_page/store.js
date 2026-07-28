@@ -6,12 +6,73 @@ console.log("js loaded");
 // ==========================================
 let modalCart = [];
 
+// Lấy dữ liệu giỏ hàng đã lưu từ localStorage
+const savedCart = localStorage.getItem("modalCart");
+
+if (savedCart) {
+    // Tách chuỗi thành danh sách từng sản phẩm theo dấu ";"
+    const items = savedCart.split(";");
+    
+    items.forEach(function (itemStr) {
+        if (itemStr && itemStr.indexOf("|") !== -1) {
+            // Tách các thuộc tính của sản phẩm theo dấu "|"
+            const parts = itemStr.split("|");
+            
+            // Kiểm tra đường dẫn ảnh
+            let imagePath = parts[3];
+            if (imagePath === "null") {
+                imagePath = null;
+            }
+
+            // Xử lý số lượng, nếu bị lỗi NaN thì gán mặc định là 0
+            let parsedQty = Number(parts[4]);
+            if (isNaN(parsedQty)) {
+                parsedQty = 0;
+            }
+
+            // Thêm lại sản phẩm vào mảng giỏ hàng
+            modalCart.push({
+                id: parts[0],
+                title: parts[1],
+                price: parts[2],
+                img: imagePath,
+                quantity: parsedQty
+            });
+        }
+    });
+}
+
+// hàm lưu dữ liệu giỏ hàng vào localStorage dưới dạng chuỗi
+function saveCartToStorage() {
+    // chuyển từng object sản phẩm thành chuỗi id|title|price|img|quantity
+    const strList = modalCart.map(function (item) {
+        let imgSrc = "null";
+        if (item.img) {
+            imgSrc = item.img;
+        }
+
+        // Đảm bảo số lượng là số hợp lệ trước khi lưu
+        let currentQty = Number(item.quantity);
+        if (isNaN(currentQty)) {
+            currentQty = 0;
+        }
+
+        return item.id + "|" + item.title + "|" + item.price + "|" + imgSrc + "|" + currentQty;
+    });
+
+    // Nối các chuỗi sản phẩm lại với nhau bằng dấu ";" và lưu vào bộ nhớ
+    localStorage.setItem("modalCart", strList.join(";"));
+}
+
 // dom các element chính
 const cartIconBtn = document.getElementById("cart-icon-btn");
 const cartBadge = document.getElementById("cart-count");
 const cartModal = document.getElementById("cart-modal");
 const closeCartBtn = document.getElementById("close-cart-btn");
 const cartModalBody = document.getElementById("cart-modal-body");
+
+// Hiển thị giỏ hàng đã khôi phục ra giao diện ngay khi tải trang
+updateModalCartUI();
 
 // nút thêm "+" vào giỏ
 const allAddButtons = document.querySelectorAll(".add-btn");
@@ -60,7 +121,11 @@ allAddButtons.forEach(function (buttonItem) {
         });
 
         if (existingItem) {
-            existingItem.quantity = existingItem.quantity + 1;
+            let qty = Number(existingItem.quantity) + 1;
+            if (isNaN(qty)) {
+                qty = 0;
+            }
+            existingItem.quantity = qty;
         } else {
             modalCart.push({
                 id: movieId,
@@ -70,6 +135,9 @@ allAddButtons.forEach(function (buttonItem) {
                 quantity: 1
             });
         }
+
+        // Lưu vào localStorage theo dạng chuỗi
+        saveCartToStorage();
 
         // render lại modal giỏ hàng
         updateModalCartUI();
@@ -84,7 +152,11 @@ allAddButtons.forEach(function (buttonItem) {
 function updateModalCartUI() {
     // tính tổng số lượng
     const totalItems = modalCart.reduce(function (sum, item) {
-        return sum + item.quantity;
+        let itemQty = Number(item.quantity);
+        if (isNaN(itemQty)) {
+            itemQty = 0;
+        }
+        return sum + itemQty;
     }, 0);
 
     if (cartBadge) {
@@ -138,7 +210,11 @@ function updateModalCartUI() {
 
         const titleElement = document.createElement("h4");
         titleElement.className = "modal-item-title";
-        titleElement.textContent = item.title;
+        if (item.title) {
+            titleElement.textContent = item.title;
+        } else {
+            titleElement.textContent = "Phim";
+        }
 
         const codeElement = document.createElement("p");
         codeElement.className = "modal-item-code";
@@ -152,9 +228,20 @@ function updateModalCartUI() {
         }
         codeElement.appendChild(codeStrong);
 
+        // Kiểm tra an toàn cho giá tiền và số lượng
+        let displayPrice = item.price;
+        if (!displayPrice || isNaN(Number(displayPrice))) {
+            displayPrice = "0";
+        }
+
+        let displayQuantity = Number(item.quantity);
+        if (isNaN(displayQuantity)) {
+            displayQuantity = 0;
+        }
+
         const priceElement = document.createElement("p");
         priceElement.className = "modal-item-price";
-        priceElement.textContent = "$" + item.price + " x " + item.quantity;
+        priceElement.textContent = "$" + displayPrice + " x " + displayQuantity;
 
         infoBox.appendChild(titleElement);
         infoBox.appendChild(codeElement);
@@ -184,6 +271,8 @@ function removeFromModalCart(id) {
     modalCart = modalCart.filter(function (item) {
         return item.id !== id;
     });
+    // Lưu lại danh sách sau khi xóa vào localStorage
+    saveCartToStorage();
     updateModalCartUI();
 }
 
@@ -246,7 +335,11 @@ function updatePrice() {
 
     const selectedItems = document.querySelectorAll(".cart_item.selected");
     selectedItems.forEach(function (item) {
-        subtotal = subtotal + Number(item.dataset.price);
+        let itemPrice = Number(item.dataset.price);
+        if (isNaN(itemPrice)) {
+            itemPrice = 0;
+        }
+        subtotal = subtotal + itemPrice;
     });
 
     let total = subtotal;
