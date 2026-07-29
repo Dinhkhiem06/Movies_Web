@@ -25,16 +25,19 @@ button {
 }
 
 /* ================= MAIN ================= */
-body {
+.auth-page {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     position: relative;
     overflow-x: hidden;
+    z-index: 1;
     background-color: #000000;
     color: #ffffff;
     font-family: "Cairo", sans-serif;
 }
 
-body::before {
+.auth-page::before {
     content: "";
     position: fixed;
     inset: 0;
@@ -43,14 +46,6 @@ body::before {
     background-image:
         radial-gradient(circle at 18% 20%, rgba(31, 131, 237, 0.16), transparent 45%),
         radial-gradient(circle at 82% 78%, rgba(31, 131, 237, 0.1), transparent 40%);
-}
-
-.auth-page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
 }
 
 .auth-layout {

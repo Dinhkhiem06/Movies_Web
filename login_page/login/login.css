@@ -25,11 +25,13 @@ button {
 }
 
 /* ================= MAIN ================= */
-/* Đổi body thành .auth-page */
 .auth-page {
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     position: relative;
     overflow-x: hidden;
+    z-index: 1;
     background-color: #000000;
     color: #ffffff;
     font-family: "Cairo", sans-serif;
@@ -44,14 +46,6 @@ button {
     background-image:
         radial-gradient(circle at 18% 20%, rgba(31, 131, 237, 0.16), transparent 45%),
         radial-gradient(circle at 82% 78%, rgba(31, 131, 237, 0.1), transparent 40%);
-}
-
-.auth-page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
 }
 
 .auth-layout {
