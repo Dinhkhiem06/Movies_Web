@@ -1,4 +1,4 @@
-// nguyễn Thiên Tân - b24048879
+// Nguyễn Thiên Tân - b24048879
 // đồ án Môn Học - Web bán vé / phim
 console.log("js loaded - web chay ngon lanh");
 

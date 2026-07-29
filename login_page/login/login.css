@@ -25,7 +25,8 @@ button {
 }
 
 /* ================= MAIN ================= */
-body {
+/* Đổi body thành .auth-page */
+.auth-page {
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
@@ -34,7 +35,7 @@ body {
     font-family: "Cairo", sans-serif;
 }
 
-body::before {
+.auth-page::before {
     content: "";
     position: fixed;
     inset: 0;

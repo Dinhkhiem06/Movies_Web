@@ -615,7 +615,7 @@ body {
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: #ff4444 0.2s ease;
 }
 
 .modal-clear-btn:hover {
@@ -631,7 +631,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     flex: 1;
-    transition: #cc0000 0.2s ease;
+    transition: red 0.2s ease;
 }
 
 .modal-checkout-btn:hover {
