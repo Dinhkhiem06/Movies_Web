@@ -1,67 +1,71 @@
-//  Nguyễn Thiên Tân - b24048879
-console.log("js loaded");
+// nguyễn Thiên Tân - b24048879
+// đồ án Môn Học - Web bán vé / phim
+console.log("js loaded - web chay ngon lanh");
 
 // ==========================================
-// 1. popup giỏ hàng modal
+// 1. POPUP GIỎ HÀNG MODAL & DỮ LIỆU
 // ==========================================
 let modalCart = [];
 
-// Lấy dữ liệu giỏ hàng đã lưu từ localStorage
-const savedCart = localStorage.getItem("modalCart");
+// khôi phục dữ liệu từ localStorage (dùng split chuỗi, không xài JSON)
+try {
+    const savedCart = localStorage.getItem("modalCart");
+    if (savedCart) {
+        const items = savedCart.split(";");
+        items.forEach(function (itemStr) {
+            if (itemStr && itemStr.indexOf("|") !== -1) {
+                const parts = itemStr.split("|");
+                
+                let imagePath = parts[3];
+                if (imagePath === "null" || !imagePath) {
+                    imagePath = null;
+                }
 
-if (savedCart) {
-    // Tách chuỗi thành danh sách từng sản phẩm theo dấu ";"
-    const items = savedCart.split(";");
-    
-    items.forEach(function (itemStr) {
-        if (itemStr && itemStr.indexOf("|") !== -1) {
-            // Tách các thuộc tính của sản phẩm theo dấu "|"
-            const parts = itemStr.split("|");
-            
-            // Kiểm tra đường dẫn ảnh
-            let imagePath = parts[3];
-            if (imagePath === "null") {
-                imagePath = null;
+                let parsedQty = Number(parts[4]);
+                if (isNaN(parsedQty) || parsedQty <= 0) {
+                    parsedQty = 1;
+                }
+
+                if (parts[0]) {
+                    modalCart.push({
+                        id: parts[0],
+                        title: parts[1] || "Phim",
+                        price: parts[2] || "0",
+                        img: imagePath,
+                        quantity: parsedQty
+                    });
+                }
             }
-
-            // Xử lý số lượng, nếu bị lỗi NaN thì gán mặc định là 0
-            let parsedQty = Number(parts[4]);
-            if (isNaN(parsedQty)) {
-                parsedQty = 0;
-            }
-
-            // Thêm lại sản phẩm vào mảng giỏ hàng
-            modalCart.push({
-                id: parts[0],
-                title: parts[1],
-                price: parts[2],
-                img: imagePath,
-                quantity: parsedQty
-            });
-        }
-    });
+        });
+    }
+} catch (error) {
+    console.error("Lỗi đọc localStorage rồi, xóa bộ nhớ tạm để tránh đơ:", error);
+    localStorage.removeItem("modalCart");
+    modalCart = [];
 }
 
-// hàm lưu dữ liệu giỏ hàng vào localStorage dưới dạng chuỗi
+// lưu dữ liệu giỏ hàng vào localStorage dưới dạng chuỗi 
 function saveCartToStorage() {
-    // chuyển từng object sản phẩm thành chuỗi id|title|price|img|quantity
-    const strList = modalCart.map(function (item) {
-        let imgSrc = "null";
-        if (item.img) {
-            imgSrc = item.img;
-        }
+    try {
+        const strList = modalCart.map(function (item) {
+            let imgSrc = "null";
+            if (item.img) {
+                imgSrc = item.img;
+            }
 
-        // Đảm bảo số lượng là số hợp lệ trước khi lưu
-        let currentQty = Number(item.quantity);
-        if (isNaN(currentQty)) {
-            currentQty = 0;
-        }
+            let currentQty = Number(item.quantity);
+            if (isNaN(currentQty)) {
+                currentQty = 1;
+            }
 
-        return item.id + "|" + item.title + "|" + item.price + "|" + imgSrc + "|" + currentQty;
-    });
+            // định dạng chuỗi: id|title|price|img|quantity
+            return item.id + "|" + item.title + "|" + item.price + "|" + imgSrc + "|" + currentQty;
+        });
 
-    // Nối các chuỗi sản phẩm lại với nhau bằng dấu ";" và lưu vào bộ nhớ
-    localStorage.setItem("modalCart", strList.join(";"));
+        localStorage.setItem("modalCart", strList.join(";"));
+    } catch (e) {
+        console.error("Lỗi lưu localStorage:", e);
+    }
 }
 
 // dom các element chính
@@ -71,60 +75,47 @@ const cartModal = document.getElementById("cart-modal");
 const closeCartBtn = document.getElementById("close-cart-btn");
 const cartModalBody = document.getElementById("cart-modal-body");
 
-// Hiển thị giỏ hàng đã khôi phục ra giao diện ngay khi tải trang
-updateModalCartUI();
-
-// nút thêm "+" vào giỏ
+// lấy danh sách các nút "+" thêm phim
 const allAddButtons = document.querySelectorAll(".add-btn");
 
-// bắt sự kiện bấm nút "+" trên từng phim
+// bắt sự kiện bấm nút "+" trên từng thẻ phim
 allAddButtons.forEach(function (buttonItem) {
     buttonItem.addEventListener("click", function (event) {
-        // ngăn sự kiện click lan ra thẻ cha (.cart_item)
         event.stopPropagation();
 
         const itemCard = buttonItem.closest(".cart_item");
-        if (!itemCard) {
-            return;
-        }
+        if (!itemCard) return;
 
-        // lấy data phim từ dom
         const movieId = itemCard.getAttribute("id");
+        if (!movieId) return;
         
         let movieTitle = "Phim";
         const titleHeader = itemCard.querySelector("h2");
         if (titleHeader) {
-            movieTitle = titleHeader.textContent;
+            movieTitle = titleHeader.textContent.trim();
         }
 
         let moviePrice = "0";
         if (itemCard.dataset.price) {
             moviePrice = itemCard.dataset.price;
         }
-        
-        // lấy mã phim chuẩn từ id
-        let movieCode = "không xác định";
-        if (movieId) {
-            movieCode = movieId.toUpperCase();
-        }
 
-        // lấy đường dẫn ảnh phim
+        let movieCode = movieId.toUpperCase();
+
         const imageElement = itemCard.querySelector(".movie_image img");
         let imageSource = null;
         if (imageElement) {
             imageSource = imageElement.getAttribute("src");
         }
 
-        // check xem phim đã có trong giỏ chưa
+        // kiểm tra xem phim đã có trong giỏ hàng chưa
         const existingItem = modalCart.find(function (item) {
             return item.id === movieId;
         });
 
         if (existingItem) {
             let qty = Number(existingItem.quantity) + 1;
-            if (isNaN(qty)) {
-                qty = 0;
-            }
+            if (isNaN(qty)) qty = 1;
             existingItem.quantity = qty;
         } else {
             modalCart.push({
@@ -136,26 +127,22 @@ allAddButtons.forEach(function (buttonItem) {
             });
         }
 
-        // Lưu vào localStorage theo dạng chuỗi
         saveCartToStorage();
-
-        // render lại modal giỏ hàng
         updateModalCartUI();
+        updatePrice();
         
-        // thông báo
-        successMessage('Đã thêm "' + movieTitle + '" vào giỏ hàng!');
+        // hiện alert theo yêu cầu
         alert('Đã thêm sản phẩm có mã [' + movieCode + '] vào giỏ hàng!');
+        successMessage('Đã thêm "' + movieTitle + '" vào giỏ hàng!');
     });
 });
 
-// hàm render lại danh sách phim bằng dom
+// hàm render lại Popup giỏ hàng (dùng DOM node hoàn toàn, KHÔNG DÙNG innerHTML)
 function updateModalCartUI() {
-    // tính tổng số lượng
+    // tính tổng số lượng hiển thị trên badge
     const totalItems = modalCart.reduce(function (sum, item) {
         let itemQty = Number(item.quantity);
-        if (isNaN(itemQty)) {
-            itemQty = 0;
-        }
+        if (isNaN(itemQty)) itemQty = 0;
         return sum + itemQty;
     }, 0);
 
@@ -163,25 +150,23 @@ function updateModalCartUI() {
         cartBadge.textContent = totalItems;
     }
 
-    if (!cartModalBody) {
-        return;
-    }
+    if (!cartModalBody) return;
 
-    // clear các thẻ con cũ trong modal body
+    // vòng lặp removechild để xóa từng phần tử
     while (cartModalBody.firstChild) {
         cartModalBody.removeChild(cartModalBody.firstChild);
     }
 
     // nếu giỏ hàng trống
     if (modalCart.length === 0) {
-        const emptyMessageElement = document.createElement("p");
-        emptyMessageElement.className = "modal-empty-msg";
-        emptyMessageElement.textContent = "Chưa có phim nào trong giỏ hàng.";
-        cartModalBody.appendChild(emptyMessageElement);
+        const emptyMsg = document.createElement("p");
+        emptyMsg.className = "modal-empty-msg";
+        emptyMsg.textContent = "Chưa có phim nào trong giỏ hàng.";
+        cartModalBody.appendChild(emptyMsg);
         return;
     }
 
-    // render lại từng item
+    // render danh sách sản phẩm bằng DOM node
     modalCart.forEach(function (item) {
         const itemRow = document.createElement("div");
         itemRow.className = "modal-cart-item";
@@ -189,7 +174,6 @@ function updateModalCartUI() {
         const leftBox = document.createElement("div");
         leftBox.className = "modal-item-left";
 
-        // thêm hình ảnh hoặc icon vip
         if (item.img) {
             const imageNode = document.createElement("img");
             imageNode.src = item.img;
@@ -205,39 +189,22 @@ function updateModalCartUI() {
             leftBox.appendChild(vipBox);
         }
 
-        // info phim
         const infoBox = document.createElement("div");
 
         const titleElement = document.createElement("h4");
         titleElement.className = "modal-item-title";
-        if (item.title) {
-            titleElement.textContent = item.title;
-        } else {
-            titleElement.textContent = "Phim";
-        }
+        titleElement.textContent = item.title || "Phim";
 
         const codeElement = document.createElement("p");
         codeElement.className = "modal-item-code";
         codeElement.textContent = "Mã: ";
         
         const codeStrong = document.createElement("strong");
-        if (item.id) {
-            codeStrong.textContent = item.id.toUpperCase();
-        } else {
-            codeStrong.textContent = "";
-        }
+        codeStrong.textContent = item.id ? item.id.toUpperCase() : "";
         codeElement.appendChild(codeStrong);
 
-        // Kiểm tra an toàn cho giá tiền và số lượng
-        let displayPrice = item.price;
-        if (!displayPrice || isNaN(Number(displayPrice))) {
-            displayPrice = "0";
-        }
-
-        let displayQuantity = Number(item.quantity);
-        if (isNaN(displayQuantity)) {
-            displayQuantity = 0;
-        }
+        let displayPrice = item.price || "0";
+        let displayQuantity = Number(item.quantity) || 0;
 
         const priceElement = document.createElement("p");
         priceElement.className = "modal-item-price";
@@ -248,7 +215,7 @@ function updateModalCartUI() {
         infoBox.appendChild(priceElement);
         leftBox.appendChild(infoBox);
 
-        // nút xóa item
+        // nút xóa từng item
         const deleteButton = document.createElement("button");
         deleteButton.className = "modal-delete-btn";
 
@@ -264,19 +231,69 @@ function updateModalCartUI() {
         itemRow.appendChild(deleteButton);
         cartModalBody.appendChild(itemRow);
     });
+
+    // thanh nút bấm Footer độc lập ở dưới popup
+    const footerBox = document.createElement("div");
+    footerBox.className = "cart-modal-footer";
+
+    const clearAllBtn = document.createElement("button");
+    clearAllBtn.className = "modal-clear-btn";
+    clearAllBtn.textContent = "Xóa tất cả";
+    clearAllBtn.addEventListener("click", function () {
+        clearAllModalCart();
+    });
+
+    const modalCheckoutBtn = document.createElement("button");
+    modalCheckoutBtn.className = "modal-checkout-btn";
+    modalCheckoutBtn.textContent = "Thanh toán tất cả";
+    modalCheckoutBtn.addEventListener("click", function () {
+        handleCheckoutModal();
+    });
+
+    footerBox.appendChild(clearAllBtn);
+    footerBox.appendChild(modalCheckoutBtn);
+    cartModalBody.appendChild(footerBox);
 }
 
-// hàm xóa item khỏi giỏ
+// xóa 1 item
 function removeFromModalCart(id) {
     modalCart = modalCart.filter(function (item) {
         return item.id !== id;
     });
-    // Lưu lại danh sách sau khi xóa vào localStorage
     saveCartToStorage();
     updateModalCartUI();
+    updatePrice();
 }
 
-// đóng mở modal giỏ hàng
+// xóa tất cả item
+function clearAllModalCart() {
+    modalCart = [];
+    saveCartToStorage();
+    updateModalCartUI();
+    updatePrice();
+    successMessage("Đã xóa toàn bộ sản phẩm trong giỏ hàng!");
+}
+
+// xử lý thanh toán từ Modal
+function handleCheckoutModal() {
+    if (modalCart.length === 0) {
+        failureMessage("Giỏ hàng đang trống!");
+        return;
+    }
+    
+    if (cartModal) {
+        cartModal.classList.remove("active");
+    }
+
+    successMessage("Thanh toán thành công. Cảm ơn bạn đã mua hàng!");
+    
+    modalCart = [];
+    saveCartToStorage();
+    updateModalCartUI();
+    updatePrice();
+}
+
+// bắt sự kiện Mở / Đóng Popup
 if (cartIconBtn) {
     cartIconBtn.addEventListener("click", function () {
         if (cartModal) {
@@ -301,9 +318,8 @@ window.addEventListener("click", function (event) {
 
 
 // ==========================================
-// 2. tính tổng tiền & phiếu giảm giá
+// 2. TÍNH TỔNG TIỀN SUBTOTAL & MÃ GIẢM GIÁ
 // ==========================================
-const cartItems = document.querySelectorAll(".cart_item");
 const subtotalElement = document.getElementById("subtotal");
 const discountElement = document.getElementById("discount");
 const totalElement = document.getElementById("total");
@@ -330,16 +346,18 @@ function failureMessage(text) {
     }
 }
 
+// hàm tính Subtotal tự động theo mảng giỏ hàng
 function updatePrice() {
     let subtotal = 0;
 
-    const selectedItems = document.querySelectorAll(".cart_item.selected");
-    selectedItems.forEach(function (item) {
-        let itemPrice = Number(item.dataset.price);
-        if (isNaN(itemPrice)) {
-            itemPrice = 0;
-        }
-        subtotal = subtotal + itemPrice;
+    modalCart.forEach(function (item) {
+        let itemPrice = Number(item.price);
+        let itemQty = Number(item.quantity);
+
+        if (isNaN(itemPrice)) itemPrice = 0;
+        if (isNaN(itemQty)) itemQty = 0;
+
+        subtotal = subtotal + (itemPrice * itemQty);
     });
 
     let total = subtotal;
@@ -362,15 +380,11 @@ function updatePrice() {
     }
 }
 
-// chọn card ngoài danh sách
-cartItems.forEach(function (item) {
-    item.addEventListener("click", function () {
-        item.classList.toggle("selected");
-        updatePrice();
-    });
-});
+// khởi chạy giao diện khi load trang
+updateModalCartUI();
+updatePrice();
 
-// ngăn nút detail kích hoạt sự kiện chọn thẻ
+// chặn sự kiện click link chi tiết
 const detailLinks = document.querySelectorAll(".detail-link");
 detailLinks.forEach(function (linkItem) {
     linkItem.addEventListener("click", function (event) {
@@ -378,7 +392,7 @@ detailLinks.forEach(function (linkItem) {
     });
 });
 
-// áp mã promo
+// nút áp dụng promo code
 if (applyBtn) {
     applyBtn.addEventListener("click", function () {
         if (promoApplied) {
@@ -397,20 +411,19 @@ if (applyBtn) {
     });
 }
 
-// xử lý nút checkout
+// nút Checkout ngoài màn hình
 if (checkoutBtn) {
     checkoutBtn.addEventListener("click", function () {
-        const selectedCount = document.querySelectorAll(".cart_item.selected").length;
-        if (selectedCount === 0) {
-            failureMessage("Please select at least one movie.");
+        if (modalCart.length === 0) {
+            failureMessage("Please add at least one movie to your cart.");
             return;
         }
 
-        successMessage("Checkout successful. Thank you for choosing Flix!");
+        handleCheckoutModal();
     });
 }
 
-// toggle menu responsive
+// menu Mobile Responsive
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.querySelector('.sub-nav__menu');
     const navHeader = document.querySelector('.nav_header');
