@@ -59,20 +59,32 @@ btnLeft.addEventListener('click', () => {
     updateSlider();
 });
 
-// đợi giao diện HTML tải xong
+// xử lí nút bật và tắt menu trên mobile và tablet
+//DOMContentLoaded dùng để thực thi chương trình khi toàn bộ html tải xong, không cần phải chờ hình ảnh,css hoặc irame --> liên quan tới cơ chế bất đồng bộ js
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.querySelector('.sub-nav__menu');
     const navHeader = document.querySelector('.nav_header');
+    const menuIcon = document.querySelector('.sub-nav__menu i'); // lấy ra icon bên trong
 
-    // lấy ra tất cả các danh sách có tên là navheader,toggle có vai trò như công tắc kiểm tra active có đc thêm
-    // vào navHeader hay ko nếu ko có thì thêm và ngc lại
-    menuBtn.addEventListener('click', function () {
-        navHeader.classList.toggle('active');
-    });
+    if (menuBtn && navHeader && menuIcon) {
+        menuBtn.addEventListener('click', function () {
+            // toggle đóng vài trò như 1 công tắt để xem tất cả các danh sách navHeader đã có icon menu chưa
+            // nếu không có thì thêm vô và ngược lại
+            navHeader.classList.toggle('active');
+
+            // khí mà navHeader có active rồi thì xóa icon menu đi và thêm icon dấu X 
+            if (navHeader.classList.contains('active')) {
+                menuIcon.classList.remove('bx-menu');
+                menuIcon.classList.add('bx-x'); 
+            } else { // ngược lại 
+                menuIcon.classList.remove('bx-x');
+                menuIcon.classList.add('bx-menu'); 
+            }
+        });
+    }
 });
 
 //kiểm tra trạng thái đăng nhập của người dùng
-// bắt event cây dom được tải xong 
 document.addEventListener('DOMContentLoaded', function () {
     const requireLoginElements = document.querySelectorAll('.js-check-login');
     requireLoginElements.forEach(function (element) {

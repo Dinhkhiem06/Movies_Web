@@ -4,7 +4,11 @@
     padding: 0;
     box-sizing: border-box;
 }
-
+/* cuộn trang mượt mà  */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 60px; 
+}
 body {
     font-family: "Cairo", sans-serif;
 }
